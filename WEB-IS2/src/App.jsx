@@ -18,6 +18,7 @@ function App() {
     { id: 2, titulo: "Visita un museo", descripcion: "Ideal si prefieres interiores." },
     { id: 3, titulo: "Tarde de lectura", descripcion: "Un buen libro y una bebida." },
     { id: 4, titulo: "Cine en casa", descripcion: "Perfecto para relajarse." },
+    
   ];
 
   // --- CLASES DINÁMICAS ---
