@@ -1,17 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './App.module.css'; // Importa los estilos del módulo
+import ClimaInfo from './components/ClimaInfo';
+import Tarjetas from './components/Tarjetas';
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
   // Datos de ejemplo (eventualmente vendrán de una API)
-  const climaInfo = {
-    temperatura: "24°C",
-    viento: "12 km/h",
-    humedad: "55%",
-    presion: "1015 hPa",
-  };
+  const [clima, setClima] = useState(null);
+ 
 
   const recomendaciones = [
     { id: 1, titulo: "Paseo por el parque", descripcion: "Disfruta del aire libre." },
@@ -21,6 +19,19 @@ function App() {
     
   ];
 
+  useEffect(() => {
+    fetch('http://localhost:8000/clima/Concepcion')
+      .then((response) => response.json())  // Convierte la respuesta a formato JSON
+      .then((data) => {
+        console.log(data);  // Muestra los datos en la consola para verificar
+        setClima(data);  // Actualiza el estado con los datos recibidos
+      })
+      .catch((err) => console.error('Error en la solicitud:', err));  // Muestra el error en consola si falla
+  }, []);
+  
+  console.log(clima)
+  
+  
   // --- CLASES DINÁMICAS ---
   // Clase para el menú lateral (abierto/cerrado)
   const menuClassName = `${styles.menu} ${menuOpen ? styles.menuOpen : styles.menuClosed}`;
@@ -28,6 +39,7 @@ function App() {
   const hamburgerContainerClassName = `${styles.hamburgerButtonContainer} ${menuOpen ? styles.hamburgerButtonContainerOpen : ''}`;
 
   return (
+    
     // Contenedor principal
     <div className={styles.container}>
 
@@ -66,33 +78,25 @@ function App() {
       <main className={styles.mainContent}>
 
         {/* Círculo Clima */}
-        <div className={styles.climaCircleContainer}>
-          <div className={styles.climaCircle}>
-            Clima
-          </div>
+      <div className={styles.climaCircleContainer}>
+        <div className={styles.climaInfo}>
+          {clima && clima.icono ? (
+                <img src={`http://openweathermap.org/img/wn/${clima.icono}@2x.png`} alt="icono clima" className={styles.iconoClima} />
+                ) : ( <p>Cargando imagen...</p> )}
+          <div className={styles.descripcionClima}> {clima ? clima.descripcion : 'Cargando...'} </div>
         </div>
+      </div>
+
 
         {/* Info clima */}
-        <section className={styles.climaInfoSection}>
-          <ul>
-            <li>Temp: {climaInfo.temperatura}</li>
-            <li>Viento: {climaInfo.viento}</li>
-          </ul>
-          <ul>
-            <li>Humedad: {climaInfo.humedad}</li>
-            <li>Presión: {climaInfo.presion}</li>
-          </ul>
-        </section>
+        <ClimaInfo climaInfo={clima} />
+        
+
+
 
         {/* Tarjetas de Recomendaciones */}
-        <section className={styles.cardGrid}>
-          {recomendaciones.map((rec) => (
-            <div key={rec.id} className={styles.card}>
-              <h3>{rec.titulo}</h3>
-              <p>{rec.descripcion}</p>
-            </div>
-          ))}
-        </section>
+        <Tarjetas recomendaciones={recomendaciones} />
+        
 
       </main>
     </div>

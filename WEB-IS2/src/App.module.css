@@ -120,26 +120,36 @@
     padding-top: 5rem;
   }
   
-  /* Círculo Clima */
-  .climaCircleContainer {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1.5rem;
-  }
-  .climaCircle {
-    width: 7rem;
-    height: 7rem;
-    border-radius: 9999px;
-    background-color: #facc15;
-    border: 4px solid #f59e0b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #7c2d12;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  }
+
+/* Contenedor principal que centra todo */
+.climaCircleContainer {
+  display: flex;
+  justify-content: center;  /* Centra horizontalmente */
+  align-items: center;      /* Centra verticalmente */
+  margin-bottom: 1.5rem;
+  height: auto;
+  padding: 1rem;            /* Espacio interno para que no quede pegado al borde */
+}
+
+/* Contenedor que agrupa la imagen y la descripción */
+.climaInfo {
+  flex-direction: column;   /* Asegura que los elementos (imagen y descripción) se apilen verticalmente */
+  text-align: center;       /* Texto centrado */
+}
+
+/* Estilo para la imagen del icono */
+.iconoClima {
+  width: 8rem;  
+  height: 8rem; 
+}
+
+/* Estilo para la descripción */
+.descripcionClima {
+  font-size: 1rem;    /* Tamaño texto */
+  color: #0c0807;
+}
+
+
   
   /* Info clima */
   .climaInfoSection {
