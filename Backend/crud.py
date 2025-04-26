@@ -1,5 +1,8 @@
 from sqlalchemy.orm import Session
 import models, schemas
+from models import Actividad
+from schemas import ActividadCreate
+
 
 def get_items(db: Session, skip: int = 0, limit: int = 10):
     return db.query(models.Item).offset(skip).limit(limit).all()
@@ -10,3 +13,13 @@ def create_item(db: Session, item: schemas.ItemCreate):
     db.commit()
     db.refresh(db_item)
     return db_item
+
+def create_actividad(db: Session, actividad: ActividadCreate):
+    db_actividad = Actividad(**actividad.dict())
+    db.add(db_actividad)
+    db.commit()
+    db.refresh(db_actividad)
+    return db_actividad
+
+def get_actividades(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(Actividad).offset(skip).limit(limit).all()

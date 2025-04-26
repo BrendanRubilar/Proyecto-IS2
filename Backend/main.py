@@ -24,3 +24,12 @@ def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db)):
 @app.get("/items/", response_model=list[schemas.Item])
 def read_items(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     return crud.get_items(db=db, skip=skip, limit=limit)
+
+
+@app.post("/actividades/", response_model=schemas.Actividad)
+def create_actividad(actividad: schemas.ActividadCreate, db: Session = Depends(get_db)):
+    return crud.create_actividad(db=db, actividad=actividad)
+
+@app.get("/actividades/", response_model=list[schemas.Actividad])
+def read_actividades(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    return crud.get_actividades(db=db, skip=skip, limit=limit)
