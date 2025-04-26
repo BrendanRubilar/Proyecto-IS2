@@ -23,3 +23,16 @@ def create_actividad(db: Session, actividad: ActividadCreate):
 
 def get_actividades(db: Session, skip: int = 0, limit: int = 10):
     return db.query(Actividad).offset(skip).limit(limit).all()
+
+#FILTRADO DE ACTIVIDADES con los datos de la API, instrucciones para DB (Esto le servirá a Juan).
+def filtrar_actividades(db: Session, estado: str, temp_min: float, temp_max: float):
+    return (
+        db.query(Actividad)
+        .filter(
+            Actividad.estado_dia == estado,
+            Actividad.temperatura_min <= temp_min,
+            Actividad.temperatura_max >= temp_max
+        )
+        .all()
+    )
+    
