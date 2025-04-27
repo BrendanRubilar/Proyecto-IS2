@@ -49,4 +49,4 @@ def call_api(call: Api_Call):
         call.presion = datos['main']['pressure']
         call.temp_max = int(datos['main']['temp_max'])
         call.temp_min = int(datos['main']['temp_min'])
-    return Api_Call
+    return call
