@@ -29,3 +29,17 @@ class Actividad(ActividadBase):
 
     class Config:
         orm_mode = True
+
+class Api_Call:
+    API_KEY = 'ec37d531cdd81de00e582d289c890b0e'
+    CIUDAD = 'Concepción'
+    URL = 'https://api.openweathermap.org/data/2.5/weather?q=' + CIUDAD + '&appid=' + API_KEY + '&units=metric&lang=es'
+
+    ciudad: str
+    temp: int
+    descripcion: str
+    viento: float
+    humedad: float
+    presion: float
+    temp_max: int
+    temp_min: int

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-import models, schemas
+import models, schemas, requests
 from models import Actividad
-from schemas import ActividadCreate
+from schemas import ActividadCreate, Api_Call
 
 
 def get_items(db: Session, skip: int = 0, limit: int = 10):
@@ -36,3 +36,17 @@ def filtrar_actividades(db: Session, estado: str, temp_min: float, temp_max: flo
         .all()
     )
     
+def call_api(call: Api_Call):
+    response = requests.get(call.URL)
+    if response.status_code != 200:
+        print("Error", response.status_code)
+    else:
+        datos = response.json()
+        call.ciudad = datos['name']
+        call.temp = int(datos['main']['temp'])
+        call.humedad = datos['weather'][0]['description']
+        call.viento = float(datos['wind']['speed'])
+        call.presion = datos['main']['pressure']
+        call.temp_max = int(datos['main']['temp_max'])
+        call.temp_min = int(datos['main']['temp_min'])
+    return Api_Call

@@ -43,6 +43,11 @@ def filtrar_actividades(
 ):
     return crud.filtrar_actividades(db=db, estado=estado, temp_min=temp_min, temp_max=temp_max)
 
+
+@app.get("/", response_model = schemas.Api_Call)
+def call_api(call: schemas.Api_Call):
+    return crud.call_api(call=call)
+
 #La idea es esta:
 #Consigues con la api del tiempo estos datos "estado", "temp_min", "temp_max"
 #y en el front tendras que hacer una llamada asi:
