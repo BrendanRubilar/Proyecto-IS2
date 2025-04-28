@@ -4,8 +4,12 @@ import models, schemas, crud
 from database import SessionLocal, engine
 import requests
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+import os
 
-API_KEY = 'ec37d531cdd81de00e582d289c890b0e'
+
+load_dotenv()  
+API_KEY = os.getenv("API_KEY")
 CIUDAD = 'Concepcion'
 # Crear las tablas en la base de datos
 models.Base.metadata.create_all(bind=engine)
@@ -13,7 +17,7 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 
-
+# Esto es por que el backend bloquea peticiones desde el frontend,en pocas palabras le da permiso al front para usar sus recursos
 origins = [
     "http://localhost:5173",  # Frontend (Vite)
 ]
@@ -57,6 +61,15 @@ def create_actividad(actividad: schemas.ActividadCreate, db: Session = Depends(g
 def read_actividades(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     return crud.get_actividades(db=db, skip=skip, limit=limit)
 
+#FILTRADO DE ACTIVIDADES con los datos de la API, Endpoint (Esto le servirá a Juan).
+@app.get("/actividades/filtrar", response_model=list[schemas.Actividad])
+def filtrar_actividades(
+    estado: str,
+    temp_min: float,
+    temp_max: float,
+    db: Session = Depends(get_db)
+):
+    return crud.filtrar_actividades(db=db, estado=estado, temp_min=temp_min, temp_max=temp_max)
 
 @app.get("/clima/{ciudad}")
 def obtener_clima(ciudad: str):
@@ -74,4 +87,6 @@ def obtener_clima(ciudad: str):
         "humedad": datos["main"]["humidity"],
         "presion": datos["main"]["pressure"],
         "icono": datos["weather"][0]["icon"],
+        "temperatura_min": datos["main"]["temp_min"],
+        "temperatura_max": datos["main"]["temp_max"],
     }

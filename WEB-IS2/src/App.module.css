@@ -147,6 +147,8 @@
 .descripcionClima {
   font-size: 1rem;    /* Tamaño texto */
   color: #0c0807;
+  font-weight: bold;
+  text-transform: capitalize;
 }
 
 
@@ -169,6 +171,7 @@
   }
    .climaInfoSection ul li {
      margin-bottom: 0.25rem;
+     font-weight: bold;
    }
   
   /* Tarjetas de Recomendaciones */

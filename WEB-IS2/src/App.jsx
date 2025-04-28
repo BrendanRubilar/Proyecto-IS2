@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import styles from './App.module.css'; // Importa los estilos del módulo
 import ClimaInfo from './components/ClimaInfo';
 import Tarjetas from './components/Tarjetas';
+import ImagenNombreClima from './components/ImagenNombreClima';
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
-  // Datos de ejemplo (eventualmente vendrán de una API)
+  // clima es la varibla que trae la info al front
   const [clima, setClima] = useState(null);
  
 
@@ -18,15 +19,15 @@ function App() {
     { id: 4, titulo: "Cine en casa", descripcion: "Perfecto para relajarse." },
     
   ];
-
+  // consulta al backend
   useEffect(() => {
     fetch('http://localhost:8000/clima/Concepcion')
-      .then((response) => response.json())  // Convierte la respuesta a formato JSON
+      .then((response) => response.json())  
       .then((data) => {
-        console.log(data);  // Muestra los datos en la consola para verificar
-        setClima(data);  // Actualiza el estado con los datos recibidos
+        console.log(data);  
+        setClima(data);  
       })
-      .catch((err) => console.error('Error en la solicitud:', err));  // Muestra el error en consola si falla
+      .catch((err) => console.error('Error en la solicitud:', err));  
   }, []);
   
   console.log(clima)
@@ -77,23 +78,13 @@ function App() {
       {/* --- Contenido Principal --- */}
       <main className={styles.mainContent}>
 
-        {/* Círculo Clima */}
-      <div className={styles.climaCircleContainer}>
-        <div className={styles.climaInfo}>
-          {clima && clima.icono ? (
-                <img src={`http://openweathermap.org/img/wn/${clima.icono}@2x.png`} alt="icono clima" className={styles.iconoClima} />
-                ) : ( <p>Cargando imagen...</p> )}
-          <div className={styles.descripcionClima}> {clima ? clima.descripcion : 'Cargando...'} </div>
-        </div>
-      </div>
+        {/* Imagen y nombre clima*/}
+        <ImagenNombreClima clima = {clima}/>
 
 
         {/* Info clima */}
         <ClimaInfo climaInfo={clima} />
         
-
-
-
         {/* Tarjetas de Recomendaciones */}
         <Tarjetas recomendaciones={recomendaciones} />
         
