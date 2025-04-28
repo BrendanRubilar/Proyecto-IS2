@@ -1,17 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './App.module.css'; // Importa los estilos del módulo
+import ClimaInfo from './components/ClimaInfo';
+import Tarjetas from './components/Tarjetas';
+import ImagenNombreClima from './components/ImagenNombreClima';
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
-  // Datos de ejemplo (eventualmente vendrán de una API)
-  const climaInfo = {
-    temperatura: "24°C",
-    viento: "12 km/h",
-    humedad: "55%",
-    presion: "1015 hPa",
-  };
+  // clima es la varibla que trae la info al front
+  const [clima, setClima] = useState(null);
+ 
 
   const recomendaciones = [
     { id: 1, titulo: "Paseo por el parque", descripcion: "Disfruta del aire libre." },
@@ -20,7 +19,20 @@ function App() {
     { id: 4, titulo: "Cine en casa", descripcion: "Perfecto para relajarse." },
     
   ];
-
+  // consulta al backend
+  useEffect(() => {
+    fetch('http://localhost:8000/clima/Concepcion')
+      .then((response) => response.json())  
+      .then((data) => {
+        console.log(data);  
+        setClima(data);  
+      })
+      .catch((err) => console.error('Error en la solicitud:', err));  
+  }, []);
+  
+  console.log(clima)
+  
+  
   // --- CLASES DINÁMICAS ---
   // Clase para el menú lateral (abierto/cerrado)
   const menuClassName = `${styles.menu} ${menuOpen ? styles.menuOpen : styles.menuClosed}`;
@@ -28,6 +40,7 @@ function App() {
   const hamburgerContainerClassName = `${styles.hamburgerButtonContainer} ${menuOpen ? styles.hamburgerButtonContainerOpen : ''}`;
 
   return (
+    
     // Contenedor principal
     <div className={styles.container}>
 
@@ -65,34 +78,16 @@ function App() {
       {/* --- Contenido Principal --- */}
       <main className={styles.mainContent}>
 
-        {/* Círculo Clima */}
-        <div className={styles.climaCircleContainer}>
-          <div className={styles.climaCircle}>
-            Clima
-          </div>
-        </div>
+        {/* Imagen y nombre clima*/}
+        <ImagenNombreClima clima = {clima}/>
+
 
         {/* Info clima */}
-        <section className={styles.climaInfoSection}>
-          <ul>
-            <li>Temp: {climaInfo.temperatura}</li>
-            <li>Viento: {climaInfo.viento}</li>
-          </ul>
-          <ul>
-            <li>Humedad: {climaInfo.humedad}</li>
-            <li>Presión: {climaInfo.presion}</li>
-          </ul>
-        </section>
-
+        <ClimaInfo climaInfo={clima} />
+        
         {/* Tarjetas de Recomendaciones */}
-        <section className={styles.cardGrid}>
-          {recomendaciones.map((rec) => (
-            <div key={rec.id} className={styles.card}>
-              <h3>{rec.titulo}</h3>
-              <p>{rec.descripcion}</p>
-            </div>
-          ))}
-        </section>
+        <Tarjetas recomendaciones={recomendaciones} />
+        
 
       </main>
     </div>
