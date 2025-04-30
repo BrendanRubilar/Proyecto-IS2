@@ -6,7 +6,7 @@ const Tarjetas = ({ recomendaciones }) => {
         <section className={styles.cardGrid}>
             {recomendaciones.map((rec) => (
                 <div key={rec.id} className={styles.card}>
-                    <h3>{rec.titulo}</h3>
+                    <h3>{rec.nombre}</h3>
                         <p>{rec.descripcion}</p>
                 </div>
             ))}

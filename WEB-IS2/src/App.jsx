@@ -10,7 +10,7 @@ function App() {
 
   // clima es la varibla que trae la info al front
   const [clima, setClima] = useState(null);
- 
+   const [actividades, setActividades] = useState([]); 
 
   const recomendaciones = [
     { id: 1, titulo: "Paseo por el parque", descripcion: "Disfruta del aire libre." },
@@ -31,7 +31,24 @@ function App() {
   }, []);
   
   console.log(clima)
-  
+  //PARA FILTRAR
+  useEffect(() => {
+  if (clima) {
+    const estado = clima.main;
+    const tempMin = clima.temperatura_min;
+    const tempMax = clima.temperatura_max;
+
+    fetch(`http://localhost:8000/actividades/filtrar?estado=${estado}&temp_min=${tempMin}&temp_max=${tempMax}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setActividades(data); // Guardamos las actividades filtradas
+      })
+      .catch((err) => console.error('Error al obtener actividades:', err));
+
+
+  }
+    }, [clima]);
+ console.log(actividades)
   
   // --- CLASES DINÁMICAS ---
   // Clase para el menú lateral (abierto/cerrado)
@@ -86,7 +103,7 @@ function App() {
         <ClimaInfo climaInfo={clima} />
         
         {/* Tarjetas de Recomendaciones */}
-        <Tarjetas recomendaciones={recomendaciones} />
+        <Tarjetas recomendaciones={actividades} />
         
 
       </main>
