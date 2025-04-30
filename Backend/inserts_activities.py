@@ -76,8 +76,17 @@ actividades2 = [
     Actividad(nombre="Té en una librería", temperatura_min=15.0, temperatura_max=21.0, estado_dia="Clouds", descripcion="Relájate tomando un té mientras exploras los libros de una librería acogedora."),
     Actividad(nombre="Visitar un centro comercial", temperatura_min=18.0, temperatura_max=24.0, estado_dia="Clouds", descripcion="Haz compras o simplemente pasea por el centro comercial en un día nublado."),
 ]
+
+actividades100x100 = [
+    Actividad(nombre="Observa las aves", temperatura_min=-10.0, temperatura_max=50.0, estado_dia="Clear", descripcion="El cielo esta despejado, observa las aves."),
+    Actividad(nombre="Observa la lluvia caer", temperatura_min=-10.0, temperatura_max=50.0, estado_dia="Rain", descripcion="Hay lluvia, quedate en casa a observarla."),
+    Actividad(nombre="Paseo por la ciudad", temperatura_min=-10.0, temperatura_max=50.0, estado_dia="Mist", descripcion="Da un paseo por la ciudad, pero ten cuidado, hay niebla."),
+    Actividad(nombre="Cocina en la casa", temperatura_min=-10.0, temperatura_max=50.0, estado_dia="Clouds", descripcion="El cielo no esta bonito, quedate en casa a cocinar algo."),
+    Actividad(nombre="Comer galletas y bebida caliente", temperatura_min=-10.0, temperatura_max=50.0, estado_dia="Snow", descripcion="Come unas ricas galletas y toma algo calido para acompañar el frio."),
+]
+
 # Inserta las actividades en la base de datos
-for actividad in actividades2:
+for actividad in actividades100x100:
     db.add(actividad)
 
 # Confirma la transacción

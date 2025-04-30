@@ -35,10 +35,9 @@ function App() {
   useEffect(() => {
   if (clima) {
     const estado = clima.main;
-    const tempMin = clima.temperatura_min;
-    const tempMax = clima.temperatura_max;
+    const temp = clima.temperatura;
 
-    fetch(`http://localhost:8000/actividades/filtrar?estado=${estado}&temp_min=${tempMin}&temp_max=${tempMax}`)
+    fetch(`http://localhost:8000/actividades/filtrar?estado=${estado}&temp=${temp}`)
       .then((res) => res.json())
       .then((data) => {
         setActividades(data); // Guardamos las actividades filtradas

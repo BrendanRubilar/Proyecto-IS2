@@ -64,16 +64,15 @@ def read_actividades(skip: int = 0, limit: int = 10, db: Session = Depends(get_d
 @app.get("/actividades/filtrar", response_model=list[schemas.Actividad])
 def filtrar_actividades(
     estado: str,
-    temp_min: float,
-    temp_max: float,
+    temp: float,
     db: Session = Depends(get_db)
 ):
-    return crud.filtrar_actividades(db=db, estado=estado, temp_min=temp_min, temp_max=temp_max)
+    return crud.filtrar_actividades(db=db, estado=estado, temp=temp)
 
 #La idea es esta:
-#Consigues con la api del tiempo estos datos "estado", "temp_min", "temp_max"
+#Consigues con la api del tiempo estos datos "estado", "temp"
 #y en el front tendras que hacer una llamada asi:
-#`http://localhost:8000/actividades/filtrar?estado=${estado}&temp_min=${tempMin}&temp_max=${tempMax}`
+#`http://localhost:8000/actividades/filtrar?estado=${estado}&temp=$[temp]'
 # Como dato en la respuesta de la api del clima, el estado corresponde a "main" por ejemplo "Rain"
 
 #Ojo que entrega una lista con todas las actividades que cumplen con el filtro. Puedes limitar en el front la cantidad
