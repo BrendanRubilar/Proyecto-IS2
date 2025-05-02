@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import styles from './App.module.css'; // Importa los estilos del módulo
+import { Link } from 'react-router-dom';
+
 import ClimaInfo from './components/ClimaInfo';
 import Tarjetas from './components/Tarjetas';
 import ImagenNombreClima from './components/ImagenNombreClima';
-
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Ubicacion from './pages/Ubicacion';
+import Inicio from './pages/Inicio';
 function App() {
+  
+
+
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
   // clima es la varibla que trae la info al front
-  const [clima, setClima] = useState(null);
-   const [actividades, setActividades] = useState([]); 
+  const [clima, setClima] = useState();
+  const [actividades, setActividades] = useState([]); 
+  const [ubicacion, setUbicacion] = useState('Concepcion');
 
   const recomendaciones = [
     { id: 1, titulo: "Paseo por el parque", descripcion: "Disfruta del aire libre." },
@@ -21,18 +29,21 @@ function App() {
   ];
   // consulta al backend
   useEffect(() => {
-    fetch('http://localhost:8000/clima/Concepcion')
-      .then((response) => response.json())  
-      .then((data) => {
-        console.log(data);  
-        setClima(data);  
-      })
-      .catch((err) => console.error('Error en la solicitud:', err));  
-  }, []);
+    if (!ubicacion) return;
+    if (ubicacion) {
+      fetch(`http://localhost:8000/clima/${ubicacion}`)
+        .then((response) => response.json())
+        .then((data) => {
+          setClima(data);  // Actualiza el estado con la respuesta de la API
+        })
+        .catch((err) => console.error('Error en la solicitud:', err));
+    }
+  }, [ubicacion]);
   
   console.log(clima)
   //PARA FILTRAR
   useEffect(() => {
+  if (!clima || !clima.main || clima.temperatura == null) return;
   if (clima) {
     const estado = clima.main;
     const temp = clima.temperatura;
@@ -56,17 +67,21 @@ function App() {
   const hamburgerContainerClassName = `${styles.hamburgerButtonContainer} ${menuOpen ? styles.hamburgerButtonContainerOpen : ''}`;
 
   return (
+
+    <Router>
     
-    // Contenedor principal
+    
     <div className={styles.container}>
 
+    
       {/* --- Menú Lateral --- */}
       <div className={menuClassName}>
         <div className={styles.menuHeader}>Menú</div>
         <ul className={styles.menuList}>
-          <li>Inicio</li>
-          <li>Login</li>
-          <li>Configuración</li>
+          <li><Link to="/">Inicio</Link></li>
+          <li><Link to="/login">Login</Link></li>
+          <li><Link to="/configuracion">Configuración</Link></li>
+          <li><Link to="/ubicacion">Ubicación</Link></li> {/* Nuevo */}
         </ul>
          <button
             onClick={toggleMenu}
@@ -93,20 +108,17 @@ function App() {
 
       {/* --- Contenido Principal --- */}
       <main className={styles.mainContent}>
-
-        {/* Imagen y nombre clima*/}
-        <ImagenNombreClima clima = {clima}/>
-
-
-        {/* Info clima */}
-        <ClimaInfo climaInfo={clima} />
+      <Routes>
+            <Route path="/" element={<Inicio clima={clima} actividades={actividades} />} />
+            <Route path="/ubicacion" element={<Ubicacion onUbicacionChange={setUbicacion} />}
+          />
+          </Routes>
         
-        {/* Tarjetas de Recomendaciones */}
-        <Tarjetas recomendaciones={actividades} />
-        
-
+      
       </main>
     </div>
+    
+    </Router>
   );
 }
 

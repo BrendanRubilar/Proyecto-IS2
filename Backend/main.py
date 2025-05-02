@@ -96,4 +96,5 @@ def obtener_clima(ciudad: str):
         "temperatura_min": datos["main"]["temp_min"],
         "temperatura_max": datos["main"]["temp_max"],
         "main":            datos["weather"][0]["main"],
+        "ciudad":          datos["name"]
     }
