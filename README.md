@@ -1,9 +1,9 @@
 ## Proyecto-IS2
-Proyecto is2 Equipo 12
+Proyecto IS2 Equipo 12
 
 
-#Sprint 1
-#Caracteristicas
+##Sprint 1
+Caracteristicas
   - **Mostrar el clima**
   - **Cambiar ciudad**
   - **Frontend basico**
