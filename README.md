@@ -2,7 +2,7 @@
 Proyecto IS2 Equipo 12
 
 
-##Sprint 1
+## Sprint 1
 Caracteristicas
   - **Mostrar el clima**
   - **Cambiar ciudad**
