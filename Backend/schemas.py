@@ -16,8 +16,8 @@ class Item(ItemBase):
 
 class ActividadBase(BaseModel):
     nombre: str
-    temperatura_min: int
-    temperatura_max: int
+    temperatura_min: float
+    temperatura_max: float
     estado_dia: str
     descripcion: str
 
@@ -29,3 +29,22 @@ class Actividad(ActividadBase):
 
     class Config:
         orm_mode = True
+
+# La clase User representa a los usuarios en la base de datos :)
+
+class UserBase(BaseModel):
+    username: str
+
+class UserCreate(UserBase):
+    password: str
+
+class User(UserBase):
+    id: int
+    is_active: bool
+
+    class Config:
+        orm_mode = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

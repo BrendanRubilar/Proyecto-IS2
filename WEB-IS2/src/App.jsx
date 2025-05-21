@@ -8,9 +8,11 @@ import ImagenNombreClima from './components/ImagenNombreClima';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Ubicacion from './pages/Ubicacion';
 import Inicio from './pages/Inicio';
+import Login from './pages/Login';
+import Register from './pages/Register';
+
 function App() {
   
-
 
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen(!menuOpen);
@@ -80,8 +82,10 @@ function App() {
         <ul className={styles.menuList}>
           <li><Link to="/">Inicio</Link></li>
           <li><Link to="/login">Login</Link></li>
+          <li><Link to="/register">Register</Link></li> {/* Added link to Register */}
           <li><Link to="/configuracion">Configuración</Link></li>
           <li><Link to="/ubicacion">Ubicación</Link></li> {/* Nuevo */}
+          
         </ul>
          <button
             onClick={toggleMenu}
@@ -110,8 +114,9 @@ function App() {
       <main className={styles.mainContent}>
       <Routes>
             <Route path="/" element={<Inicio clima={clima} actividades={actividades} />} />
-            <Route path="/ubicacion" element={<Ubicacion onUbicacionChange={setUbicacion} />}
-          />
+            <Route path="/ubicacion" element={<Ubicacion onUbicacionChange={setUbicacion} />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
           </Routes>
         
       
