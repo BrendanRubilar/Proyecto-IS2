@@ -1,40 +1,54 @@
+# main.py
+
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
-import models, schemas, crud
-from database import SessionLocal, engine
+import models, schemas, crud 
+from database import SessionLocal, engine # Tu módulo de base de datos
 import requests
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date, timezone # Asegúrate de importar timezone
 from passlib.context import CryptContext
-
-
-load_dotenv()  
+import math 
+from urllib.parse import quote as encodeURIComponent
+import locale as pylocale # Para formatear nombres de días
+from typing import Optional, List, Dict, Any
+# Cargar variables de entorno (API_KEY, SECRET_KEY, etc.)
+load_dotenv()
 API_KEY = os.getenv("API_KEY")
-CIUDAD = 'Concepcion'
-# Crear las tablas en la base de datos
+if not API_KEY:
+    raise EnvironmentError("FATAL: No se encontró API_KEY en el archivo .env. La aplicación no puede iniciarse.")
+
+SECRET_KEY = os.getenv("SECRET_KEY", "una_clave_secreta_por_defecto_muy_larga_y_dificil_de_adivinar_cambiame_en_produccion")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 120))
+
+
+# Crear las tablas en la base de datos si no existen
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
-
-
-# Esto es por que el backend bloquea peticiones desde el frontend,en pocas palabras le da permiso al front para usar sus recursos
-origins = [
-    "http://localhost:5173",  # Frontend (Vite)
-]
-
-# middleware CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,            # Permite esos orígenes
-    allow_credentials=True,
-    allow_methods=["*"],              # Permite todos los métodos (GET, POST, etc.)
-    allow_headers=["*"],              # Permite todos los headers
+app = FastAPI(
+    title="API de Clima y Actividades",
+    description="Provee datos del clima y sugerencias de actividades basadas en el clima.",
+    version="1.0.1" # Incrementada la versión
 )
 
+# Configuración CORS para permitir solicitudes desde el frontend
+origins = [
+    "http://localhost:5173",  # Dirección de tu frontend Vite
+    # Puedes añadir más orígenes si es necesario (ej. tu URL de producción)
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"], # Permite todos los métodos (GET, POST, etc.)
+    allow_headers=["*"], # Permite todos los encabezados
+)
 
 # Dependencia para obtener la sesión de la base de datos
 def get_db():
@@ -44,96 +58,282 @@ def get_db():
     finally:
         db.close()
 
+# --- Funciones auxiliares para el procesamiento de datos del clima ---
+def mps_to_kmh(mps: Optional[float]) -> Optional[float]:
+    if mps is None:
+        return None
+    return round(mps * 3.6, 1)
+
+def calculate_dew_point(temp_c: Optional[float], humidity_percent: Optional[float]) -> Optional[float]:
+    if temp_c is None or humidity_percent is None or humidity_percent <= 0: # Evitar log(0) o negativo
+        return None
+    try:
+        # Fórmula aproximada de Magnus-Tetens
+        a = 17.27
+        b = 237.7
+        alpha = ((a * temp_c) / (b + temp_c)) + math.log(humidity_percent / 100.0)
+        dew_point = (b * alpha) / (a - alpha)
+        return round(dew_point, 1)
+    except (ValueError, TypeError, ZeroDivisionError) as e:
+        print(f"Error calculando punto de rocío: temp={temp_c}, hum={humidity_percent}, error={e}")
+        return None
+
+def get_air_quality_data(lat: float, lon: float, api_key: str) -> Dict[str, Any]:
+    aq_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={api_key}"
+    try:
+        response = requests.get(aq_url)
+        response.raise_for_status()
+        aq_data = response.json()
+        if aq_data and aq_data.get("list") and len(aq_data["list"]) > 0:
+            components = aq_data["list"][0]["components"]
+            # Usamos pm2_5 como valor principal si está, si no, un valor por defecto.
+            return {"value": round(components.get("pm2_5", 0), 1) if components else "N/A"}
+    except requests.exceptions.RequestException as e:
+        print(f"Error obteniendo calidad del aire: {e}")
+    except (KeyError, IndexError, TypeError) as e: # TypeError por si components es None
+        print(f"Error parseando datos de calidad del aire: {e}")
+    return {"value": "N/A"}
 
 
+# --- Endpoints ---
 
-# End points en esta sección
-@app.post("/items/", response_model=schemas.Item)
-def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db)):
+@app.post("/items/", response_model=schemas.Item, tags=["Items (Ejemplo)"])
+def create_item_endpoint(item: schemas.ItemCreate, db: Session = Depends(get_db)):
     return crud.create_item(db=db, item=item)
 
-@app.get("/items/", response_model=list[schemas.Item])
-def read_items(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+@app.get("/items/", response_model=list[schemas.Item], tags=["Items (Ejemplo)"])
+def read_items_endpoint(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     return crud.get_items(db=db, skip=skip, limit=limit)
 
-@app.post("/actividades/", response_model=schemas.Actividad)
-def create_actividad(actividad: schemas.ActividadCreate, db: Session = Depends(get_db)):
+@app.post("/actividades/", response_model=schemas.Actividad, tags=["Actividades"])
+def create_actividad_endpoint(actividad: schemas.ActividadCreate, db: Session = Depends(get_db)):
     return crud.create_actividad(db=db, actividad=actividad)
 
-@app.get("/actividades/", response_model=list[schemas.Actividad])
-def read_actividades(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+@app.get("/actividades/", response_model=list[schemas.Actividad], tags=["Actividades"])
+def read_actividades_endpoint(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_actividades(db=db, skip=skip, limit=limit)
 
-#FILTRADO DE ACTIVIDADES con los datos de la API, Endpoint (Esto le servirá a Juan).
-@app.get("/actividades/filtrar", response_model=list[schemas.Actividad])
-def filtrar_actividades(
+@app.get("/actividades/filtrar", response_model=list[schemas.Actividad], tags=["Actividades"])
+def filtrar_actividades_endpoint(
     estado: str,
     temp: float,
     db: Session = Depends(get_db)
 ):
     return crud.filtrar_actividades(db=db, estado=estado, temp=temp)
 
-#La idea es esta:
-#Consigues con la api del tiempo estos datos "estado", "temp"
-#y en el front tendras que hacer una llamada asi:
-#`http://localhost:8000/actividades/filtrar?estado=${estado}&temp=$[temp]'
-# Como dato en la respuesta de la api del clima, el estado corresponde a "main" por ejemplo "Rain"
 
-#Ojo que entrega una lista con todas las actividades que cumplen con el filtro. Puedes limitar en el front la cantidad
-#a mostrar, o si quieres cambias el endpoint y le dices das un valor para que busque esa cantidad como maximo.
-@app.get("/clima/{ciudad}")
-def obtener_clima(ciudad: str):
-    url = f"https://api.openweathermap.org/data/2.5/weather?q={ciudad}&appid={API_KEY}&units=metric&lang=es"
-    response = requests.get(url)
+@app.get("/clima/{ciudad}", response_model=schemas.FullWeatherReport, tags=["Clima"])
+def obtener_pronostico_completo(ciudad: str):
+    # Endpoint de OpenWeatherMap para pronóstico de 5 días / 3 horas
+    forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?q={encodeURIComponent(ciudad)}&appid={API_KEY}&units=metric&lang=es"
     
-    if response.status_code != 200:
-        return {"error": "No se pudo obtener el clima"}
+    try:
+        response = requests.get(forecast_url)
+        response.raise_for_status() # Lanza HTTPError para códigos 4xx/5xx
+        datos_forecast = response.json()
+    except requests.exceptions.HTTPError as http_err:
+        if response.status_code == 404:
+            raise HTTPException(status_code=404, detail=f"Ciudad '{ciudad}' no encontrada por el proveedor de clima.")
+        elif response.status_code == 401: # Unauthorized
+            raise HTTPException(status_code=500, detail="Error de configuración del servidor: API Key de clima inválida.") # No exponer el error 401 directamente
+        else: # Otros errores HTTP
+            raise HTTPException(status_code=response.status_code, detail=f"Error del proveedor de clima: {http_err}")
+    except requests.exceptions.RequestException as e: # Errores de conexión, DNS, etc.
+        raise HTTPException(status_code=503, detail=f"No se pudo contactar al proveedor de clima: {e}")
     
-    datos = response.json()
-    return {
-        "viento": datos["wind"]["speed"],
-        "temperatura": datos["main"]["temp"],
-        "descripcion": datos["weather"][0]["description"],
-        "humedad": datos["main"]["humidity"],
-        "presion": datos["main"]["pressure"],
-        "icono": datos["weather"][0]["icon"],
-        "temperatura_min": datos["main"]["temp_min"],
-        "temperatura_max": datos["main"]["temp_max"],
-        "main":            datos["weather"][0]["main"],
-        "ciudad":          datos["name"]
-    }
+    if not datos_forecast or "list" not in datos_forecast or not datos_forecast["list"]:
+        raise HTTPException(status_code=404, detail=f"No se encontraron datos de pronóstico para '{ciudad}'.")
 
-SECRET_KEY = "your_secret_key"  # Replace with a secure key
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 120
+    # Información de la ciudad y zona horaria
+    city_info = datos_forecast["city"]
+    lat = city_info["coord"]["lat"]
+    lon = city_info["coord"]["lon"]
+    city_timezone_offset_seconds = city_info["timezone"] # Offset en segundos desde UTC
 
+    # Obtener calidad del aire (llamada separada)
+    air_quality = get_air_quality_data(lat, lon, API_KEY)
+
+    # Procesar datos "actuales" (tomados del primer registro del pronóstico)
+    current_raw = datos_forecast["list"][0]
+    current_processed = schemas.CurrentWeather(
+        dt=current_raw["dt"],
+        temperatura=round(current_raw["main"]["temp"]),
+        sensacion_termica=round(current_raw["main"]["feels_like"]),
+        presion=current_raw["main"]["pressure"],
+        humedad=current_raw["main"]["humidity"],
+        visibilidad=current_raw.get("visibility", 10000), # Default si no está
+        punto_rocio=calculate_dew_point(current_raw["main"]["temp"], current_raw["main"]["humidity"]),
+        viento_velocidad=mps_to_kmh(current_raw["wind"]["speed"]),
+        descripcion=current_raw["weather"][0]["description"],
+        icono=current_raw["weather"][0]["icon"],
+        main=current_raw["weather"][0]["main"],
+        calidad_aire=air_quality
+    )
+
+    # Procesar datos horarios (todos los disponibles en la lista del pronóstico)
+    hourly_processed = [
+        schemas.HourlyForecastItem(
+            dt=item["dt"],
+            temp=round(item["main"]["temp"]),
+            icono=item["weather"][0]["icon"],
+            pop=round(item.get("pop", 0) * 100) # Probabilidad de precipitación en %
+        ) for item in datos_forecast["list"]
+    ]
+
+    # Agrupar datos por día local de la ciudad para el pronóstico diario
+    daily_aggregation = {}
+    for item in datos_forecast["list"]:
+        item_datetime_utc = datetime.fromtimestamp(item["dt"], tz=timezone.utc)
+        item_datetime_local = item_datetime_utc + timedelta(seconds=city_timezone_offset_seconds)
+        item_date_local_str = item_datetime_local.date().isoformat()
+
+        if item_date_local_str not in daily_aggregation:
+            start_of_local_day_naive = datetime.combine(item_datetime_local.date(), datetime.min.time())
+            start_of_local_day_utc = start_of_local_day_naive - timedelta(seconds=city_timezone_offset_seconds)
+            daily_aggregation[item_date_local_str] = {
+                "dt_utc_start_day": int(start_of_local_day_utc.timestamp()),
+                "temps_min": [], "temps_max": [], "feels_like_temps": [],
+                "icons_weighted": {}, "descriptions_weighted": {}, "mains_weighted": {}, # Para elegir el más representativo
+                "pops": [], "humidities": [], "pressures": [], "wind_speeds": []
+            }
+        
+        agg = daily_aggregation[item_date_local_str]
+        agg["temps_min"].append(item["main"]["temp_min"])
+        agg["temps_max"].append(item["main"]["temp_max"])
+        agg["feels_like_temps"].append(item["main"]["feels_like"])
+        
+        icon = item["weather"][0]["icon"]
+        agg["icons_weighted"][icon] = agg["icons_weighted"].get(icon, 0) + 1
+        desc = item["weather"][0]["description"]
+        agg["descriptions_weighted"][desc] = agg["descriptions_weighted"].get(desc, 0) + 1
+        main_w = item["weather"][0]["main"]
+        agg["mains_weighted"][main_w] = agg["mains_weighted"].get(main_w, 0) + 1
+
+        agg["pops"].append(item.get("pop", 0) * 100)
+        agg["humidities"].append(item["main"]["humidity"])
+        agg["pressures"].append(item["main"]["pressure"])
+        agg["wind_speeds"].append(mps_to_kmh(item["wind"]["speed"]))
+
+    # Construir la lista final del pronóstico diario
+    daily_final_list = []
+    now_utc = datetime.now(timezone.utc)
+    city_today_local = (now_utc + timedelta(seconds=city_timezone_offset_seconds)).date()
+
+    # Configurar locale para nombres de días en español
+    original_locale = pylocale.getlocale(pylocale.LC_TIME) # Guardar locale actual
+    try:
+        pylocale.setlocale(pylocale.LC_TIME, "es_ES.UTF-8")
+    except pylocale.Error:
+        try:
+            pylocale.setlocale(pylocale.LC_TIME, "Spanish_Spain.1252") # Windows
+        except pylocale.Error:
+            print("Warning: Locale 'es_ES' o 'Spanish_Spain' no disponible. Usando locale por defecto para nombres de días.")
+            pass # Continuar con el locale por defecto si es_ES no está
+
+    for day_iso_str, data in sorted(daily_aggregation.items())[:7]: # Limitar a 7 días
+        day_date_local = date.fromisoformat(day_iso_str)
+        
+        day_label = ""
+        if day_date_local == city_today_local:
+            day_label = "Hoy"
+        elif (day_date_local - city_today_local).days == 1:
+            day_label = "Mañana"
+        else:
+            day_label = day_date_local.strftime("%a").capitalize().replace(".","")
+
+        daily_final_list.append(schemas.DailyForecastItem(
+            dt=data["dt_utc_start_day"],
+            dayLabel=day_label,
+            temp_min=round(min(data["temps_min"])),
+            temp_max=round(max(data["temps_max"])),
+            sensacion_termica_dia=round(sum(data["feels_like_temps"]) / len(data["feels_like_temps"])),
+            icono=max(data["icons_weighted"], key=data["icons_weighted"].get), # El más frecuente
+            descripcion=max(data["descriptions_weighted"], key=data["descriptions_weighted"].get),
+            main=max(data["mains_weighted"], key=data["mains_weighted"].get),
+            pop=round(max(data["pops"])),
+            humedad=round(sum(data["humidities"]) / len(data["humidities"])),
+            presion=round(sum(data["pressures"]) / len(data["pressures"])),
+            viento_velocidad=round(sum(data["wind_speeds"]) / len(data["wind_speeds"]), 1),
+            calidad_aire=None # Calidad del aire es para 'current', para 'daily' sería un promedio o N/A
+        ))
+    
+    pylocale.setlocale(pylocale.LC_TIME, original_locale) # Restaurar locale original
+
+    return schemas.FullWeatherReport(
+        ciudad=city_info["name"],
+        lat=lat,
+        lon=lon,
+        timezone_offset=city_timezone_offset_seconds,
+        current=current_processed,
+        hourly=hourly_processed,
+        daily=daily_final_list
+    )
+
+# --- Autenticación ---
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def authenticate_user(db: Session, username: str, password: str):
+def authenticate_user(db: Session, username: str, password: str) -> Optional[models.User]:
     user = crud.get_user_by_username(db, username)
     if not user or not pwd_context.verify(password, user.hashed_password):
-        return False
+        return None
     return user
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-@app.post("/register/", response_model=schemas.User)
+@app.post("/register/", response_model=schemas.User, tags=["Autenticación"])
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=user.username)
     if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
+        raise HTTPException(status_code=400, detail="El nombre de usuario ya está registrado")
     return crud.create_user(db=db, user=user)
 
-@app.post("/token", response_model=schemas.Token)
+@app.post("/token", response_model=schemas.Token, tags=["Autenticación"])
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    access_token = create_access_token(data={"sub": user.username}, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+        raise HTTPException(
+            status_code=401,
+            detail="Nombre de usuario o contraseña incorrectos",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
     return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/users/me", response_model=schemas.User, tags=["Usuarios"])
+async def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=401, # Unauthorized
+        detail="No se pudieron validar las credenciales",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: Optional[str] = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    
+    user = crud.get_user_by_username(db, username=username)
+    if user is None:
+        raise credentials_exception
+    return user
+
+# Para ejecutar con `python main.py` (opcional, uvicorn es preferido para desarrollo/producción)
+if __name__ == "__main__":
+    import uvicorn
+    print(f"Iniciando servidor Uvicorn en http://localhost:8000")
+    print(f"API Key de clima cargada: {'Sí' if API_KEY else 'No (¡CONFIGURAR .env!)'}")
+    print(f"Documentación de la API disponible en http://localhost:8000/docs")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) # reload=True para desarroll

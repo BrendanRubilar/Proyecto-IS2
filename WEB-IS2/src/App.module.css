@@ -1,211 +1,163 @@
-/* Contenedor Principal */
-.container {
-    min-height: 100vh;
-    background-color: white;
-    border: 4px solid #a0aec0;
-    padding: 1rem;
-    position: relative;
-    overflow-x: hidden;
-  }
-  
-  /* --- Menú Lateral --- */
-  .menu {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 16rem;
-    background-color: #e2e8f0;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out;
-    z-index: 50;
-    display: flex;
-    flex-direction: column;
-  }
-  .menuOpen {
-    transform: translateX(0);
-  }
-  .menuClosed {
-    transform: translateX(-100%);
-  }
-  .menuHeader {
-    padding: 1rem;
-    border-bottom: 1px solid #cbd5e0;
-    font-size: 1.25rem;
-    font-weight: 600;
-  }
-  .menuList {
-    padding: 1rem;
-    list-style: none;
-    margin: 0;
-  }
-  .menuList li {
-    padding: 0.5rem;
-    cursor: pointer;
-    border-radius: 0.375rem; 
-    margin-bottom: 0.5rem;
-  }
-  .menuList li:hover {
-    background-color: #cbd5e0;
-  }
-  .menuCloseButton {
-      margin: 1rem;
-      margin-top: auto;
-      padding: 0.5rem;
-      color: #e53e3e; 
-      background: none;
-      border: none;
-      cursor: pointer;
-      text-align: left;
-      font-size: 0.875rem
-  }
-  .menuCloseButton:hover {
-      text-decoration: underline;
-  }
-  
-  /* Overlay */
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background-color: black;
-    opacity: 0.4;
-    z-index: 40;
-  }
-  
-  /* --- Botón Hamburguesa --- */
-  .hamburgerButtonContainer {
-    position: absolute;
-    top: 1rem;
-    left: 1rem;
-    z-index: 60;
-    transition: left 0.3s ease-in-out;
-  }
-  
-  /* Clase para desplazar el contenedor cuando el menú está abierto */
-  .hamburgerButtonContainerOpen {
-    left: 17rem;
-  }
-  
-  .hamburgerButton {
-    /* Botón más pequeño */
-    width: 2.5rem;
-    height: 2.5rem;
-    border: 2px solid #718096;
-    border-radius: 0.375rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    align-items: center;
-    padding: 0.4rem;
-    background-color: white;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
-  .hamburgerButton:hover {
-    background-color: #f7fafc;
-  }
-  
-  .hamburgerButton span {
-    display: block;
-    width: 1.25rem;
-    height: 2px;
-    background-color: #4a5568;
-    border-radius: 1px;
-  }
-  
-  /* --- Contenido Principal --- */
-  .mainContent {
-    padding-top: 5rem;
-  }
-  
+/* src/App.module.css - Estilos globales y layout del dashboard */
 
-/* Contenedor principal que centra todo */
-.climaCircleContainer {
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Degradado de azul claro (arriba) a azul más oscuro (abajo) */
+  /* background: linear-gradient(to bottom, #4A90E2, #0A2749); */ /* Azul claro a oscuro */
+  /* background: linear-gradient(to bottom, #3b82f6, #1d4ed8); */ /* Tailwind Blue 500 a Blue 700 */
+  background: linear-gradient(to bottom, #000d28, #000000); /* Tailwind Blue 600 a Blue 800 - Opción más oscura */
+  
+  background-attachment: fixed; /* El degradado no se scrollea con el contenido */
+  color: #e5e7eb; /* Color de texto claro por defecto, ajustado para contraste */
+  line-height: 1.5;
+  overflow-x: hidden; /* Previene el scroll horizontal en el body */
+  min-height: 100vh; /* Asegura que el body ocupe al menos toda la altura */
+}
+
+* {
+  box-sizing: border-box; /* Padding y border no añaden al tamaño total */
+}
+
+a {
+  color: #93c5fd; /* Azul más claro para enlaces, mejor contraste */
+  text-decoration: none;
+  transition: color 0.2s, transform 0.2s ease-out;
+}
+a:hover {
+  color: #bfdbfe; /* Aún más claro en hover */
+  text-decoration: underline;
+  transform: scale(1.05); /* Efecto zoom sutil para enlaces */
+}
+
+/* Contenedor principal de la aplicación */
+.appContainer {
+  min-height: 100vh;
   display: flex;
-  justify-content: center;  /* Centra horizontalmente */
-  align-items: center;      /* Centra verticalmente */
-  margin-bottom: 1.5rem;
-  height: auto;
-  padding: 1rem;            /* Espacio interno para que no quede pegado al borde */
+  flex-direction: column;
 }
 
-/* Contenedor que agrupa la imagen y la descripción */
-.climaInfo {
-  flex-direction: column;   /* Asegura que los elementos (imagen y descripción) se apilen verticalmente */
-  text-align: center;       /* Texto centrado */
+/* Estilos para la página Inicio (Dashboard) */
+.inicioDashboard {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; 
 }
 
-/* Estilo para la imagen del icono */
-.iconoClima {
-  width: 8rem;  
-  height: 8rem; 
+.mainDashboardContent {
+  display: flex;
+  flex-grow: 1;
+  padding: 1.5rem;
+  gap: 1.5rem;
+  max-width: 1400px; 
+  margin: 0 auto; 
+  width: 100%; 
 }
 
-/* Estilo para la descripción */
-.descripcionClima {
-  font-size: 1rem;    /* Tamaño texto */
-  color: #0c0807;
-  font-weight: bold;
-  text-transform: capitalize;
+.leftColumn {
+  flex: 3; 
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0; 
+}
+
+.rightColumn {
+  flex: 2; 
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0; 
+}
+
+/* Estilos para Tarjetas (reutilizando tu componente) */
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Un poco más anchas las tarjetas */
+  gap: 1.5rem; /* Mayor separación */
+}
+
+.card {
+  background-color: rgba(31, 41, 55, 0.7); /* Fondo de tarjeta oscuro con transparencia */
+  backdrop-filter: blur(5px); /* Efecto blur si el fondo de la tarjeta es transparente */
+  border: 1px solid #374151; 
+  border-radius: 0.75rem; /* Bordes más redondeados */
+  padding: 1.5rem;
+  text-align: left; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2); /* Sombra más pronunciada */
+  transition: box-shadow 0.3s ease, transform 0.2s ease-out;
+}
+
+.card:hover {
+  transform: translateY(-5px) scale(1.02); /* Efecto de elevación y ligero zoom */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+.card h3 {
+  font-weight: 600;
+  font-size: 1.1rem; 
+  margin-top: 0;
+  margin-bottom: 0.5rem; 
+  color: #93c5fd; /* Azul claro para títulos de tarjeta */
+}
+
+.card p {
+  color: #cbd5e1; /* Texto de párrafo más claro */
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+/* Estados de carga y error de página completa */
+.fullPageLoading, .fullPageError {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 1.5rem;
+  color: #cbd5e1; /* Texto más claro para mensajes de carga/error */
+  padding: 2rem;
+  text-align: center;
+}
+
+.loadingMessage { /* Para mensajes de carga dentro de secciones */
+  text-align: center;
+  padding: 1rem;
+  color: #9ca3af;
+  font-style: italic;
 }
 
 
-  
-  /* Info clima */
-  .climaInfoSection {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    margin-bottom: 2rem;
-    gap: 3rem;
-    text-align: left;
-    color: #2d3748;
+/* Media Query para pantallas más pequeñas (ejemplo para apilar columnas) */
+@media (max-width: 992px) { 
+  .mainDashboardContent {
+    flex-direction: column;
   }
-  .climaInfoSection ul {
-    list-style: disc;
-    list-style-position: inside;
-    padding: 0;
-    margin: 0;
+  .leftColumn, .rightColumn {
+    flex: 1 1 100%; 
+    width: 100%;
   }
-   .climaInfoSection ul li {
-     margin-bottom: 0.25rem;
-     font-weight: bold;
-   }
-  
-  /* Tarjetas de Recomendaciones */
+}
+
+@media (max-width: 768px) {
+  .mainDashboardContent {
+    padding: 1rem;
+    gap: 1rem;
+  }
   .cardGrid {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-    gap: 1.5rem;
-    padding-left: 2.5rem;
-    padding-right: 2.5rem;
+    grid-template-columns: 1fr; /* Una columna en móviles */
   }
-  /* Media query para 2 columnas en pantallas más grandes */
-  @media (min-width: 640px) {
-    .cardGrid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+  .appHeader { /* Reducir padding del header en móviles */
+    padding: 0.75rem 1rem;
   }
-  .card {
-    border-radius: 1rem;
-    background-color: #cffafe; 
-    border: 4px solid #67e8f9; 
-    padding: 1.5rem;
-    text-align: center;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.3s ease;
+  .cityPresets { /* Ocultar presets en pantallas muy pequeñas o hacerlos scrolleables */
+    display: none; 
+    /* O:
+    overflow-x: auto;
+    max-width: 150px; 
+    white-space: nowrap;
+    */
   }
-  .card:hover {
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  .searchInput {
+    min-width: 150px; /* Reducir ancho del input de búsqueda */
   }
-  .card h3 {
-    font-weight: 600;
-    font-size: 1.25rem; 
-    margin-bottom: 0.5rem; 
-    color: #155e75;
-  }
-  .card p {
-    color: #4a5568;
-  }
+}

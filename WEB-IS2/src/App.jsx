@@ -1,33 +1,23 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import styles from './App.module.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import styles from './App.module.css'; // Este será el principal para el layout del dashboard
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
-import Ubicacion from './pages/Ubicacion.jsx';
+// Ya no necesitamos Ubicacion como página, está en el Header
 import Inicio from './pages/Inicio.jsx';
 
 function App() {
   return (
     <Router>
-      <div className={styles.container}>
-        <div className={styles.menu}>
-          <div className={styles.menuHeader}>Menú</div>
-          <ul className={styles.menuList}>
-            <li><Link to="/">Inicio</Link></li>
-            <li><Link to="/login">Login</Link></li>
-            <li><Link to="/register">Register</Link></li>
-            <li><Link to="/ubicacion">Ubicación</Link></li>
-          </ul>
-        </div>
-
-        <main className={styles.mainContent}>
-          <Routes>
-            <Route path="/" element={<Inicio />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/ubicacion" element={<Ubicacion />} />
-          </Routes>
-        </main>
+      {/* El div container ahora es global para el fondo oscuro */}
+      <div className={styles.appContainer}> 
+        {/* Ya no hay menú lateral aquí, el Header está dentro de Inicio */}
+        <Routes>
+          <Route path="/" element={<Inicio />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          {/* Podrías añadir una ruta 404 aquí */}
+        </Routes>
       </div>
     </Router>
   );
