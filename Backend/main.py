@@ -3,14 +3,14 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 import models, schemas, crud 
-from database import SessionLocal, engine # Tu módulo de base de datos
+from database import SessionLocal, engine 
 import requests
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
-from datetime import datetime, timedelta, date, timezone # Asegúrate de importar timezone
+from datetime import datetime, timedelta, date, timezone 
 from passlib.context import CryptContext
 import math 
 from urllib.parse import quote as encodeURIComponent
@@ -38,8 +38,7 @@ app = FastAPI(
 
 # Configuración CORS para permitir solicitudes desde el frontend
 origins = [
-    "http://localhost:5173",  # Dirección de tu frontend Vite
-    # Puedes añadir más orígenes si es necesario (ej. tu URL de producción)
+    "http://localhost:5173", 
 ]
 
 app.add_middleware(

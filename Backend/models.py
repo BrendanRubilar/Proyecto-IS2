@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 from database import Base
 
 class Item(Base):
@@ -27,3 +28,29 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
+
+    preferences = relationship("UserPreference", back_populates="user")
+
+class ActivityType(Base):
+    __tablename__ = "activity_types"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, unique=True, nullable=False)
+
+class Modality(Base):
+    __tablename__ = "modalities"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, unique=True, nullable=False)
+
+
+class UserPreference(Base):
+    __tablename__ = "user_preferences"
+
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    activity_type_id = Column(Integer, ForeignKey("activity_types.id"), primary_key=True)
+    modality_id = Column(Integer, ForeignKey("modalities.id"), primary_key=True)
+
+    user = relationship("User", back_populates="preferences")
+    activity_type = relationship("ActivityType")
+    modality = relationship("Modality")
