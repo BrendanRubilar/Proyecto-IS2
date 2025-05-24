@@ -54,3 +54,15 @@ class UserPreference(Base):
     user = relationship("User", back_populates="preferences")
     activity_type = relationship("ActivityType")
     modality = relationship("Modality")
+
+#Tablita para preferencias actividades
+class ActivityPreference(Base):
+    __tablename__ = "activity_preferences"
+
+    actividad_id = Column(Integer, ForeignKey("actividades.id"), primary_key=True)
+    activity_type_id = Column(Integer, ForeignKey("activity_types.id"), primary_key=True)
+    modality_id = Column(Integer, ForeignKey("modalities.id"), primary_key=True)
+
+    actividad = relationship("Actividad", backref="preferences")
+    activity_type = relationship("ActivityType")
+    modality = relationship("Modality")
