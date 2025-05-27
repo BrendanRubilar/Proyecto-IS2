@@ -92,3 +92,4 @@ class FullWeatherReport(BaseModel):
     current: CurrentWeather
     hourly: List[HourlyForecastItem]
     daily: List[DailyForecastItem]
+

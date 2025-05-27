@@ -3,6 +3,7 @@ import models, schemas
 from models import Actividad, User
 from schemas import ActividadCreate, UserCreate
 from passlib.context import CryptContext
+from typing import List
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -40,6 +41,27 @@ def filtrar_actividades(db: Session, estado: str, temp: float):
             Actividad.estado_dia == estado,
             Actividad.temperatura_min <= temp,
             Actividad.temperatura_max >= temp,
+        )
+        .all()
+    )
+
+
+def get_actividades_por_clima_y_preferencias(
+    db: Session,
+    temperatura: float,
+    estado: str,
+    activity_type_ids: List[int],
+    modality_ids: List[int]
+) -> List[models.Actividad]:
+    return (
+        db.query(models.Actividad)
+        .join(models.ActivityPreference, models.Actividad.id == models.ActivityPreference.actividad_id)
+        .filter(
+            models.ActivityPreference.activity_type_id.in_(activity_type_ids),
+            models.ActivityPreference.modality_id.in_(modality_ids),
+            models.Actividad.temperatura_min <= temperatura,
+            models.Actividad.temperatura_max >= temperatura,
+            models.Actividad.estado_dia == estado
         )
         .all()
     )

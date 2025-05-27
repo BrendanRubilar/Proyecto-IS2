@@ -118,6 +118,7 @@ def filtrar_actividades_endpoint(
     temp: float,
     db: Session = Depends(get_db)
 ):
+    estado = estado.capitalize()
     return crud.filtrar_actividades(db=db, estado=estado, temp=temp)
 
 
@@ -258,6 +259,8 @@ def obtener_pronostico_completo(ciudad: str):
     
     pylocale.setlocale(pylocale.LC_TIME, original_locale) # Restaurar locale original
 
+    print(current_processed.temperatura)
+
     return schemas.FullWeatherReport(
         ciudad=city_info["name"],
         lat=lat,
@@ -329,7 +332,69 @@ async def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depen
         raise credentials_exception
     return user
 
-# Para ejecutar con `python main.py` (opcional, uvicorn es preferido para desarrollo/producción)
+
+@app.get("/actividades/recomendadas", response_model=List[schemas.Actividad], tags=["Actividades"])
+def get_actividades_recomendadas(
+    temperatura: float,
+    estado: str,
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    estado = estado.capitalize()
+    # --- Autenticación ---
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="No se pudieron validar las credenciales",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = crud.get_user_by_username(db, username=username)
+    if user is None:
+        raise credentials_exception
+
+    preferencias = db.query(models.UserPreference).filter_by(user_id=user.id).all()
+    if not preferencias:
+        raise HTTPException(status_code=404, detail="El usuario no tiene preferencias registradas")
+    
+    
+    print(f"Preferencias del usuario {user.username} (id={user.id}):")
+    for p in preferencias:
+        print(f" - activity_type_id={p.activity_type_id}, modality_id={p.modality_id}")
+
+    activity_type_ids = [p.activity_type_id for p in preferencias]
+    modality_ids = [p.modality_id for p in preferencias]
+
+
+    print(f"Filtrando actividades con:")
+    print(f" - temperatura={temperatura}")
+    print(f" - estado_dia={estado}")
+    print(f" - activity_type_ids={activity_type_ids}")
+    print(f" - modality_ids={modality_ids}")
+
+    actividades_filtradas = crud.get_actividades_por_clima_y_preferencias(
+        db=db,
+        temperatura=temperatura,
+        estado=estado,
+        activity_type_ids=activity_type_ids,
+        modality_ids=modality_ids
+    )
+    return actividades_filtradas
+
+
+
+
+
+
+
+# Para ejecutar con `python main.py
 if __name__ == "__main__":
     import uvicorn
     print(f"Iniciando servidor Uvicorn en http://localhost:8000")
