@@ -1,13 +1,19 @@
 ## Proyecto-IS2
-Proyecto IS2 Equipo 12
-
+Proyecto de Ingenieria de Software II Equipo 12
 
 ## Sprint 1
 Caracteristicas
   - **Mostrar el clima**
   - **Cambiar ciudad**
   - **Frontend basico**
-## Instrucciones de compilación
-Usar docker-compose
 
-![image](https://github.com/user-attachments/assets/560cd359-95b8-479b-ace6-79f9402987ce)
+## Sprint 2
+Caracteristicas
+  - **Preferencias de usuario**
+  - **Interfaz mejorada**
+
+## Instrucciones de compilación
+Se utiliza Docker, usar comando docker-compose up --build
+
+![image](https://github.com/user-attachments/assets/e7d1aae1-1979-47b8-869c-fb8c014c3c33)
+
