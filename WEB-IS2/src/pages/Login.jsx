@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(''); 
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
@@ -11,23 +11,25 @@ const Login = () => {
     const response = await fetch('http://localhost:8000/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ username, password }),
+      body: new URLSearchParams({ username, password }), 
     });
 
     if (response.ok) {
       const data = await response.json();
       console.log('Inicio de sesión existoso!', data); 
-      alert('Inicio de sesión existoso! Token: ' + data.access_token);
+
+      localStorage.setItem('accessToken', data.access_token); 
+      alert('Inicio de sesión existoso!'); 
       navigate('/');
     } else {
-      const errorData = await response.json();
-      console.error('Inicio de sesión fallido:', errorData.detail); 
-      if (errorData.detail === 'Credenciales invalidas D:') {
-        console.warn('Correo o contraseña incorrectos'); 
-      } else {
-        console.warn('Cuenta no existe u otro error raro, saludos maquina!'); 
+      try {
+        const errorData = await response.json();
+        console.error('Inicio de sesión fallido:', errorData.detail); 
+        alert(errorData.detail || 'Error, inténtalo nuevamente :)'); 
+      } catch (parseError) {
+        console.error('Failed to parse error response:', parseError);
+        alert('Error, inténtalo nuevamente :)');
       }
-      alert('Error, intentalo nuevamente :)');
     }
   };
 
@@ -36,10 +38,10 @@ const Login = () => {
       <h1>Login</h1>
       <form onSubmit={handleSubmit}>
         <label>
-          Username:
+          Email: {/* Changed label */}
           <input
-            type="text"
-            value={username}
+            type="email" 
+            value={username} 
             onChange={(e) => setUsername(e.target.value)}
             required
           />

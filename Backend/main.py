@@ -275,8 +275,8 @@ def obtener_pronostico_completo(ciudad: str):
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def authenticate_user(db: Session, username: str, password: str) -> Optional[models.User]:
-    user = crud.get_user_by_username(db, username)
+def authenticate_user(db: Session, email: str, password: str) -> Optional[models.User]:
+    user = crud.get_user_by_email(db, email)
     if not user or not pwd_context.verify(password, user.hashed_password):
         return None
     return user
@@ -290,48 +290,53 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+
 @app.post("/register/", response_model=schemas.User, tags=["Autenticación"])
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_username(db, username=user.username)
+    print(user)  # Agrega esto para inspeccionar los datos recibidos
+    db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
-        raise HTTPException(status_code=400, detail="El nombre de usuario ya está registrado")
-    return crud.create_user(db=db, user=user)
+        raise HTTPException(status_code=400, detail="El correo electrónico ya está registrado")
+    try:
+        return crud.create_user(db=db, user=user)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/token", response_model=schemas.Token, tags=["Autenticación"])
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = authenticate_user(db, form_data.username, form_data.password)
+    user = authenticate_user(db, form_data.username, form_data.password) 
     if not user:
         raise HTTPException(
             status_code=401,
-            detail="Nombre de usuario o contraseña incorrectos",
+            detail="Correo electrónico o contraseña incorrectos", 
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.email}, expires_delta=access_token_expires 
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @app.get("/users/me", response_model=schemas.User, tags=["Usuarios"])
 async def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
-        status_code=401, # Unauthorized
+        status_code=401, 
         detail="No se pudieron validar las credenciales",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: Optional[str] = payload.get("sub")
-        if username is None:
+        email: Optional[str] = payload.get("sub") 
+        if email is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
     
-    user = crud.get_user_by_username(db, username=username)
+    user = crud.get_user_by_email(db, email=email) 
     if user is None:
         raise credentials_exception
     return user
-
 
 @app.get("/actividades/recomendadas", response_model=List[schemas.Actividad], tags=["Actividades"])
 def get_actividades_recomendadas(
@@ -350,13 +355,13 @@ def get_actividades_recomendadas(
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        email: str = payload.get("sub") 
+        if email is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
 
-    user = crud.get_user_by_username(db, username=username)
+    user = crud.get_user_by_email(db, email=email) # Changed to use email
     if user is None:
         raise credentials_exception
 
@@ -387,12 +392,6 @@ def get_actividades_recomendadas(
         modality_ids=modality_ids
     )
     return actividades_filtradas
-
-
-
-
-
-
 
 # Para ejecutar con `python main.py
 if __name__ == "__main__":

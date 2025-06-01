@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Dict, Any
+
 
 # --- Schemas existentes ---
 class ItemBase(BaseModel):
@@ -30,7 +31,7 @@ class Actividad(ActividadBase):
         from_attributes = True
 
 class UserBase(BaseModel):
-    username: str
+    email: EmailStr
 
 class UserCreate(UserBase):
     password: str

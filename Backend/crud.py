@@ -4,13 +4,49 @@ from models import Actividad, User
 from schemas import ActividadCreate, UserCreate
 from passlib.context import CryptContext
 from typing import List
+import re
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+def is_password_strong(password: str):
+    """
+    Valida la fortaleza de la contraseña.
+    Requisitos:
+    - Al menos 6 caracteres.
+    - Al menos una letra mayúscula.
+    - Al menos un número.
+    - Al menos un carácter especial.
+    """
+    if len(password) < 6:
+        return False
+    if not re.search(r"[A-Z]", password):
+        return False
+    if not re.search(r"[0-9]", password):
+        return False
+    if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?]", password):
+        return False
+    return True
 
 def get_items(db: Session, skip: int = 0, limit: int = 10):
     return db.query(models.Item).offset(skip).limit(limit).all()
+
+
+def get_user_by_email(db: Session, email: str):
+    return db.query(User).filter(User.email == email).first()
+
+def create_user(db: Session, user: UserCreate):
+    if not is_password_strong(user.password):
+        raise ValueError(  
+            "La contraseña no cumple con los requisitos: debe tener al menos 6 caracteres, "
+            "una mayúscula, un número y un carácter especial."
+        )
+    hashed_password = pwd_context.hash(user.password)
+    db_user = User(email=user.email, hashed_password=hashed_password)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
 
 def create_item(db: Session, item: schemas.ItemCreate):
@@ -65,16 +101,4 @@ def get_actividades_por_clima_y_preferencias(
         )
         .all()
     )
-
-def get_user_by_username(db: Session, username: str):
-    return db.query(User).filter(User.username == username).first()
-
-
-def create_user(db: Session, user: UserCreate):
-    hashed_password = pwd_context.hash(user.password)
-    db_user = User(username=user.username, hashed_password=hashed_password)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
 

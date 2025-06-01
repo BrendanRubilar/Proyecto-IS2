@@ -1,24 +1,34 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+
 const Register = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState(''); 
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(''); 
+
     const response = await fetch('http://localhost:8000/register/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password }), 
     });
 
     if (response.ok) {
       alert('Registration successful!');
       navigate('/login');
     } else {
-      alert('Registration failed. Please try again.');
+      try {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Registration failed. Please try again.');
+      } catch (parseError) {
+        console.error('Failed to parse error response:', parseError); 
+        setError('Registration failed. An unexpected error occurred.');
+      }
     }
   };
 
@@ -26,12 +36,13 @@ const Register = () => {
     <div>
       <h1>Register</h1>
       <form onSubmit={handleSubmit}>
+        {error && <p style={{ color: 'red' }}>{error}</p>} 
         <label>
-          Username:
+          Email: 
           <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </label>
