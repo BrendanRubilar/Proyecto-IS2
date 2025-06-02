@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import styles from './Header.module.css';
 
 const UbicacionSearch = ({ onUbicacionChange }) => {
@@ -56,8 +56,32 @@ const UbicacionSearch = ({ onUbicacionChange }) => {
   );
 };
 
-
 const Header = ({ onUbicacionChange, onCityPresetSelect }) => {
+  const [userEmail, setUserEmail] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    const email = localStorage.getItem('userEmail');
+
+    if (token && email) {
+      setIsAuthenticated(true);
+      setUserEmail(email);
+    } else {
+      setIsAuthenticated(false);
+      setUserEmail('');
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userEmail');
+    
+    window.location.href = '/'; // Recarga la página 
+    alert('Sesión cerrada correctamente');
+  };
+
   const cityPresets = ["Gran Santiago", "Viña del Mar", "Antofagasta", "Temuco", "Puerto Montt"];
 
   return (
@@ -73,11 +97,18 @@ const Header = ({ onUbicacionChange, onCityPresetSelect }) => {
         </div>
       </div>
       <div className={styles.rightSection}>
-        {/* Botones "Tema" y "°C" eliminados */}
-        {/* <button className={styles.themeButton}>Tema</button> */}
-        {/* <button className={styles.tempUnitButton}>°C</button> */}
-        <Link to="/login" className={styles.authLink}>Login</Link>
-        <Link to="/register" className={styles.authLink}>Register</Link>
+        {isAuthenticated ? (
+          <>
+            <span className={styles.userInfo}> Bienvenido, {userEmail.split('@')[0]}</span>
+
+            <button className={styles.logoutLink} onClick={handleLogout}>Cerrar sesión</button>
+          </>
+        ) : (
+          <>
+            <Link to="/login" className={styles.authLink}>Login</Link>
+            <Link to="/register" className={styles.authLink}>Register</Link>
+          </>
+        )}
       </div>
     </header>
   );

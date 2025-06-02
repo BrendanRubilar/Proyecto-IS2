@@ -19,6 +19,7 @@ const Login = () => {
       console.log('Inicio de sesión existoso!', data); 
 
       localStorage.setItem('accessToken', data.access_token); 
+      localStorage.setItem('userEmail', username); // ← guarda el email del usuario
       alert('Inicio de sesión existoso!'); 
       navigate('/');
     } else {

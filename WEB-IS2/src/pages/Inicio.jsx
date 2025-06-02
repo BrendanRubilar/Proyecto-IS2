@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from '../App.module.css';
 import Header from '../components/header';
 import CurrentWeatherDisplay from '../components/CurrentWeatherDisplay';
@@ -8,16 +9,27 @@ import Tarjetas from '../components/Tarjetas';
 import Map from '../components/Map';
 
 function Inicio() {
+  const navigate = useNavigate();
+
+  const [userEmail, setUserEmail] = useState('');
   const [currentCityName, setCurrentCityName] = useState('Concepción');
   const [mapCoords, setMapCoords] = useState([-36.82707, -73.05021]);
-  
   const [fullWeatherData, setFullWeatherData] = useState(null);
-  const [selectedDayDt, setSelectedDayDt] = useState(null); 
-  const [displayWeather, setDisplayWeather] = useState(null); 
-  
+  const [selectedDayDt, setSelectedDayDt] = useState(null);
+  const [displayWeather, setDisplayWeather] = useState(null);
   const [actividades, setActividades] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Obtener usuario y validar sesión
+  useEffect(() => {
+    const email = localStorage.getItem('userEmail');
+    const token = localStorage.getItem('accessToken');
+  
+    if (email) {
+      setUserEmail(email);
+    }
+  }, [navigate]);
 
   const fetchWeatherData = useCallback(async (city) => {
     setIsLoading(true);
@@ -29,11 +41,11 @@ function Inicio() {
         throw new Error(errorData.detail || `Error ${response.status}: No se pudo obtener el clima`);
       }
       const data = await response.json();
-      
+
       setFullWeatherData(data);
 
       if (data.daily && data.daily.length > 0) {
-        setSelectedDayDt(data.daily[0].dt); 
+        setSelectedDayDt(data.daily[0].dt);
       } else if (data.current) {
         setDisplayWeather(data.current);
         setSelectedDayDt(data.current.dt);
@@ -71,25 +83,24 @@ function Inicio() {
         const dayData = fullWeatherData.daily.find(d => d.dt === selectedDayDt);
         if (dayData) {
           weatherToShow = { ...dayData };
-          // Corregido: Asegurar que fullWeatherData.daily[0] exista antes de acceder a su dt
           if (dayData.dayLabel === "Hoy" && fullWeatherData.current && fullWeatherData.daily && fullWeatherData.daily.length > 0 && fullWeatherData.current.dt === fullWeatherData.daily[0].dt) {
-             weatherToShow = {
-                ...dayData, 
-                dt: fullWeatherData.current.dt, 
-                temperatura: fullWeatherData.current.temperatura,
-                sensacion_termica: fullWeatherData.current.sensacion_termica,
-                presion: fullWeatherData.current.presion,
-                humedad: fullWeatherData.current.humedad,
-                visibilidad: fullWeatherData.current.visibilidad,
-                punto_rocio: fullWeatherData.current.punto_rocio,
-                viento_velocidad: fullWeatherData.current.viento_velocidad,
-                descripcion: fullWeatherData.current.descripcion,
-                icono: fullWeatherData.current.icono,
-                main: fullWeatherData.current.main,
-                calidad_aire: fullWeatherData.current.calidad_aire,
-                temp_min: dayData.temp_min, 
-                temp_max: dayData.temp_max,
-             };
+            weatherToShow = {
+              ...dayData,
+              dt: fullWeatherData.current.dt,
+              temperatura: fullWeatherData.current.temperatura,
+              sensacion_termica: fullWeatherData.current.sensacion_termica,
+              presion: fullWeatherData.current.presion,
+              humedad: fullWeatherData.current.humedad,
+              visibilidad: fullWeatherData.current.visibilidad,
+              punto_rocio: fullWeatherData.current.punto_rocio,
+              viento_velocidad: fullWeatherData.current.viento_velocidad,
+              descripcion: fullWeatherData.current.descripcion,
+              icono: fullWeatherData.current.icono,
+              main: fullWeatherData.current.main,
+              calidad_aire: fullWeatherData.current.calidad_aire,
+              temp_min: dayData.temp_min,
+              temp_max: dayData.temp_max,
+            };
           }
         }
       }
@@ -107,21 +118,21 @@ function Inicio() {
       setActividades([]);
       return;
     }
-    
+
     const tempForActivity = displayWeather.temperatura !== undefined ? displayWeather.temperatura : displayWeather.temp_max;
     const estadoDia = displayWeather.main;
 
     fetch(`http://localhost:8000/actividades/filtrar?estado=${encodeURIComponent(estadoDia)}&temp=${tempForActivity}`)
       .then((res) => {
         if (!res.ok) {
-            throw new Error(`Error ${res.status} al obtener actividades`);
+          throw new Error(`Error ${res.status} al obtener actividades`);
         }
         return res.json();
       })
       .then((data) => setActividades(data))
       .catch((err) => {
-          console.error('Error al obtener actividades:', err);
-          setActividades([]);
+        console.error('Error al obtener actividades:', err);
+        setActividades([]);
       });
   }, [displayWeather]);
 
@@ -131,7 +142,7 @@ function Inicio() {
       setMapCoords(newCoords);
     }
   };
-  
+
   const handleCityPresetSelect = async (cityName) => {
     setIsLoading(true);
     setError(null);
@@ -142,9 +153,9 @@ function Inicio() {
       const data = await response.json();
       if (data && data.length > 0) {
         const cityData = data[0];
-        setCurrentCityName(cityData.display_name); 
+        setCurrentCityName(cityData.display_name);
         if (cityData.lat && cityData.lon) {
-            setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
+          setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
         }
       } else {
         setError("Ciudad preseleccionada no encontrada vía Nominatim.");
@@ -161,54 +172,45 @@ function Inicio() {
     setSelectedDayDt(dayDt);
   };
 
-  if (isLoading && !fullWeatherData && !error) { 
+
+  if (isLoading && !fullWeatherData && !error) {
     return <div className={styles.fullPageLoading}>Cargando datos iniciales...</div>;
   }
-  
+
   if (error) {
-     return <div className={styles.fullPageError}>Error: {error}. Intenta de nuevo más tarde o con otra ciudad.</div>;
+    return <div className={styles.fullPageError}>Error: {error}. Intenta de nuevo más tarde o con otra ciudad.</div>;
   }
 
   if (!fullWeatherData) {
-     return <div className={styles.fullPageError}>No se pudieron cargar los datos del clima. Comprueba la ciudad e inténtalo de nuevo.</div>;
+    return <div className={styles.fullPageError}>No se pudieron cargar los datos del clima. Comprueba la ciudad e inténtalo de nuevo.</div>;
   }
 
   return (
     <div className={styles.inicioDashboard}>
       <Header onUbicacionChange={handleUbicacionChange} onCityPresetSelect={handleCityPresetSelect} />
-      
       <main className={styles.mainDashboardContent}>
         <div className={styles.leftColumn}>
-          {/* Mensajes de carga/estado */}
           {isLoading && !displayWeather && <p className={styles.loadingMessage}>Actualizando clima...</p>}
           {!isLoading && !displayWeather && fullWeatherData && <p className={styles.loadingMessage}>Selecciona un día para ver el detalle.</p>}
-
-          {/* Componentes principales del clima */}
           {displayWeather && <CurrentWeatherDisplay weatherData={displayWeather} cityName={fullWeatherData.ciudad} />}
-          
           {fullWeatherData.daily && fullWeatherData.daily.length > 0 && (
-            <DailyForecastNav 
-              dailyData={fullWeatherData.daily} 
+            <DailyForecastNav
+              dailyData={fullWeatherData.daily}
               onDaySelect={handleDaySelect}
               selectedDayDt={selectedDayDt}
             />
           )}
-          
           {fullWeatherData && fullWeatherData.hourly && fullWeatherData.hourly.length > 0 && (
-            <HourlyForecastDisplay 
+            <HourlyForecastDisplay
               allHourlyData={fullWeatherData.hourly}
               selectedDayDt={selectedDayDt}
               timezoneOffset={fullWeatherData.timezone_offset}
             />
           )}
-          
-          {/* Tarjetas eliminadas de la columna izquierda */}
-          {/* <Tarjetas recomendaciones={actividades} /> */}
         </div>
         <div className={styles.rightColumn}>
           <Map coords={mapCoords} />
-          {/* Tarjetas ahora en la columna derecha, debajo del mapa */}
-          <Tarjetas recomendaciones={actividades} /> 
+          <Tarjetas recomendaciones={actividades} />
         </div>
       </main>
     </div>
