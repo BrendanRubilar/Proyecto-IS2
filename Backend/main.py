@@ -46,8 +46,10 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"], # Permite todos los métodos (GET, POST, etc.)
-    allow_headers=["*"], # Permite todos los encabezados
+    #allow_headers=["*"], # Permite todos los encabezados
+    allow_headers=["*", "Authorization"],
 )
+
 
 # Dependencia para obtener la sesión de la base de datos
 def get_db():
@@ -370,9 +372,9 @@ def get_actividades_recomendadas(
         raise HTTPException(status_code=404, detail="El usuario no tiene preferencias registradas")
     
     
-    print(f"Preferencias del usuario {user.username} (id={user.id}):")
-    for p in preferencias:
-        print(f" - activity_type_id={p.activity_type_id}, modality_id={p.modality_id}")
+    # print(f"Preferencias del usuario {user.username} (id={user.id}):")
+    # for p in preferencias:
+    #     print(f" - activity_type_id={p.activity_type_id}, modality_id={p.modality_id}")
 
     activity_type_ids = [p.activity_type_id for p in preferencias]
     modality_ids = [p.modality_id for p in preferencias]

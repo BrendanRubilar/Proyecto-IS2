@@ -113,28 +113,70 @@ function Inicio() {
     }
   }, [selectedDayDt, fullWeatherData]);
 
-  useEffect(() => {
-    if (!displayWeather || !displayWeather.main || (displayWeather.temperatura === undefined && displayWeather.temp_max === undefined)) {
-      setActividades([]);
-      return;
-    }
+useEffect(() => {
+  if (
+    !displayWeather ||
+    !displayWeather.main ||
+    (displayWeather.temperatura === undefined && displayWeather.temp_max === undefined)
+  ) {
+    setActividades([]);
+    return;
+  }
 
-    const tempForActivity = displayWeather.temperatura !== undefined ? displayWeather.temperatura : displayWeather.temp_max;
-    const estadoDia = displayWeather.main;
+  const tempForActivity = displayWeather.temperatura !== undefined
+    ? displayWeather.temperatura
+    : displayWeather.temp_max;
+  const estadoDia = displayWeather.main;
+  const token = localStorage.getItem("accessToken");
 
-    fetch(`http://localhost:8000/actividades/filtrar?estado=${encodeURIComponent(estadoDia)}&temp=${tempForActivity}`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Error ${res.status} al obtener actividades`);
+  const fetchGenericas = () => {
+    return fetch(`http://localhost:8000/actividades/filtrar?estado=${encodeURIComponent(estadoDia)}&temp=${tempForActivity}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setActividades(data);
+        } else {
+          console.warn("Respuesta inesperada al cargar actividades generales.");
+          setActividades([]);
         }
-        return res.json();
       })
-      .then((data) => setActividades(data))
-      .catch((err) => {
-        console.error('Error al obtener actividades:', err);
+      .catch(err => {
+        console.error('Error al obtener actividades generales:', err);
         setActividades([]);
       });
-  }, [displayWeather]);
+  };
+
+  if (!token) {
+    console.warn("No hay token JWT. Cargando actividades generales.");
+    fetchGenericas();
+    return;
+  }
+
+  fetch(`http://localhost:8000/actividades/recomendadas?estado=${encodeURIComponent(estadoDia)}&temperatura=${tempForActivity}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  })
+    .then(res => {
+      if (res.status === 404) {
+        console.warn("Usuario sin preferencias. Cargando actividades generales.");
+        return fetchGenericas();
+      }
+      if (!res.ok) throw new Error(`Error ${res.status} al obtener actividades personalizadas`);
+      return res.json();
+    })
+    .then(data => {
+      if (Array.isArray(data)) {
+        setActividades(data);
+      }
+    })
+    .catch(err => {
+      console.error('Error al obtener actividades personalizadas:', err);
+      fetchGenericas(); // fallback en caso de error
+    });
+}, [displayWeather]);
+
 
   const handleUbicacionChange = (newCityName, newCoords) => {
     setCurrentCityName(newCityName);

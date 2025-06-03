@@ -2,8 +2,14 @@
 
 #TESTEO PUSH
 
+import sys
+import os
 
 from sqlalchemy.orm import Session
+
+# Añadir el directorio padre al path para que funcione la importación
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from models import User, ActivityType, Modality, UserPreference
 from database import SessionLocal
 
@@ -11,7 +17,7 @@ from database import SessionLocal
 db: Session = SessionLocal()
 
 # Obtén el usuario con id=3
-user = db.query(User).filter(User.id == 3).first()
+user = db.query(User).filter(User.id == 2).first()
 
 # Verifica que exista
 if user:
