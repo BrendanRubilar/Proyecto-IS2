@@ -9,6 +9,7 @@ Caracteristicas
 
 ## Sprint 2
 Caracteristicas
+  - **Cuentas de usuario**
   - **Preferencias de usuario**
   - **Interfaz mejorada**
 
