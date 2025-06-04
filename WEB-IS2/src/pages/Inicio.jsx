@@ -9,9 +9,6 @@ import Tarjetas from '../components/Tarjetas';
 import Map from '../components/Map';
 
 function Inicio() {
-  const navigate = useNavigate();
-
-  const [userEmail, setUserEmail] = useState('');
   const [mapCoords, setMapCoords] = useState([-36.82707, -73.05021]);
   const [fullWeatherData, setFullWeatherData] = useState(null);
   const [selectedDayDt, setSelectedDayDt] = useState(null);
@@ -19,7 +16,7 @@ function Inicio() {
   const [actividades, setActividades] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [selectedCityName, setSelectedCityName] = useState('Concepción');
   // Obtener email del usuario
   useEffect(() => {
     const email = localStorage.getItem('userEmail');
@@ -128,11 +125,14 @@ function Inicio() {
       });
   }, [displayWeather]);
 
- const handleUbicacionChange = (cityData) => {
-  if (cityData.lat && cityData.lon) {
-    setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
-  }
-};
+  const handleUbicacionChange = (cityData) => {
+    if (cityData.lat && cityData.lon) {
+      console.log("Ciudad seleccionada:", cityData.display_name); // Depuración
+      setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
+      setSelectedCityName(cityData.display_name);
+    }
+  };
+
   const handleCityPresetSelect = async (cityName) => {
     setIsLoading(true);
     setError(null);
@@ -157,6 +157,17 @@ function Inicio() {
     }
   };
 
+  const handleCitySelect = ({ lat, lon, name }) => {
+    setMapCoords([parseFloat(lat), parseFloat(lon)]);
+    setSelectedCityName(name); // Actualiza el nombre de la ciudad
+  };
+
+  const handleSelectCity = (cityData) => {
+    onUbicacionChange(cityData); // Enviar todo el objeto
+    setSearchTerm(cityData.display_name); // Actualiza el campo de búsqueda
+    setSearchResults([]); // Limpia los resultados
+  };
+
   const handleDaySelect = (dayDt) => {
     setSelectedDayDt(dayDt);
   };
@@ -175,12 +186,17 @@ function Inicio() {
 
   return (
     <div className={styles.inicioDashboard}>
-      <Header onUbicacionChange={handleUbicacionChange} onCityPresetSelect={handleCityPresetSelect} />
+      <Header onUbicacionChange={handleUbicacionChange} onCityPresetSelect={handleCityPresetSelect} onCitySelect={handleCitySelect} />
       <main className={styles.mainDashboardContent}>
         <div className={styles.leftColumn}>
           {isLoading && !displayWeather && <p className={styles.loadingMessage}>Actualizando clima...</p>}
           {!isLoading && !displayWeather && <p className={styles.loadingMessage}>Selecciona un día para ver el detalle.</p>}
-          {displayWeather && <CurrentWeatherDisplay weatherData={displayWeather} cityName={fullWeatherData.ciudad} />}
+          {displayWeather && (
+            <CurrentWeatherDisplay
+              weatherData={displayWeather}
+              cityName={selectedCityName} // Depuración
+            />
+          )}
           {fullWeatherData.daily?.length > 0 && (
             <DailyForecastNav
               dailyData={fullWeatherData.daily}

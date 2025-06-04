@@ -9,7 +9,6 @@ class Item(Base):
     name = Column(String, index=True)
     description = Column(String, index=True)
 
-
 class Actividad(Base):
     __tablename__ = "actividades"
 
