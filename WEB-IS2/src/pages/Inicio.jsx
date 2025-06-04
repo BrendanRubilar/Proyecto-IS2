@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from '../App.module.css';
 import Header from '../components/header';
@@ -12,7 +12,6 @@ function Inicio() {
   const navigate = useNavigate();
 
   const [userEmail, setUserEmail] = useState('');
-  const [currentCityName, setCurrentCityName] = useState('Concepción');
   const [mapCoords, setMapCoords] = useState([-36.82707, -73.05021]);
   const [fullWeatherData, setFullWeatherData] = useState(null);
   const [selectedDayDt, setSelectedDayDt] = useState(null);
@@ -21,191 +20,139 @@ function Inicio() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Obtener usuario y validar sesión
+  // Obtener email del usuario
   useEffect(() => {
     const email = localStorage.getItem('userEmail');
-    const token = localStorage.getItem('accessToken');
-  
-    if (email) {
-      setUserEmail(email);
-    }
-  }, [navigate]);
+    if (email) setUserEmail(email);
+  }, []);
 
-  const fetchWeatherData = useCallback(async (city) => {
+  // Obtener datos del clima
+  const fetchWeather = async (lat, lon) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:8000/clima/${encodeURIComponent(city)}`);
+      const response = await fetch(`http://localhost:8000/clima/por-coordenadas?lat=${lat}&lon=${lon}`);
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || `Error ${response.status}: No se pudo obtener el clima`);
+        throw new Error(errorData.detail || `Error ${response.status}`);
       }
       const data = await response.json();
-
       setFullWeatherData(data);
 
-      if (data.daily && data.daily.length > 0) {
+      if (data.daily?.length) {
         setSelectedDayDt(data.daily[0].dt);
       } else if (data.current) {
-        setDisplayWeather(data.current);
         setSelectedDayDt(data.current.dt);
-      } else {
-        throw new Error("Datos del clima incompletos recibidos del backend.");
       }
-
-      if (data.lat && data.lon) {
-        setMapCoords([data.lat, data.lon]);
-      }
-
     } catch (err) {
-      console.error("Error en fetchWeatherData:", err);
+      console.error("Error al obtener clima:", err);
       setError(err.message);
       setFullWeatherData(null);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  };
 
+  // Reaccionar a cambios de coordenadas
   useEffect(() => {
-    fetchWeatherData(currentCityName);
-  }, [currentCityName, fetchWeatherData]);
+    if (!mapCoords || mapCoords.length !== 2) return;
+    fetchWeather(mapCoords[0], mapCoords[1]);
+  }, [mapCoords]);
 
+  // Determinar clima actual o seleccionado
   useEffect(() => {
     if (!fullWeatherData) {
       setDisplayWeather(null);
       return;
     }
+
+    let weatherToShow = null;
     if (selectedDayDt) {
-      let weatherToShow = null;
-      if (fullWeatherData.current && fullWeatherData.current.dt === selectedDayDt) {
+      if (fullWeatherData.current?.dt === selectedDayDt) {
         weatherToShow = { ...fullWeatherData.current };
-      } else if (fullWeatherData.daily) {
-        const dayData = fullWeatherData.daily.find(d => d.dt === selectedDayDt);
-        if (dayData) {
-          weatherToShow = { ...dayData };
-          if (dayData.dayLabel === "Hoy" && fullWeatherData.current && fullWeatherData.daily && fullWeatherData.daily.length > 0 && fullWeatherData.current.dt === fullWeatherData.daily[0].dt) {
-            weatherToShow = {
-              ...dayData,
-              dt: fullWeatherData.current.dt,
-              temperatura: fullWeatherData.current.temperatura,
-              sensacion_termica: fullWeatherData.current.sensacion_termica,
-              presion: fullWeatherData.current.presion,
-              humedad: fullWeatherData.current.humedad,
-              visibilidad: fullWeatherData.current.visibilidad,
-              punto_rocio: fullWeatherData.current.punto_rocio,
-              viento_velocidad: fullWeatherData.current.viento_velocidad,
-              descripcion: fullWeatherData.current.descripcion,
-              icono: fullWeatherData.current.icono,
-              main: fullWeatherData.current.main,
-              calidad_aire: fullWeatherData.current.calidad_aire,
-              temp_min: dayData.temp_min,
-              temp_max: dayData.temp_max,
-            };
-          }
-        }
+      } else {
+        weatherToShow = fullWeatherData.daily?.find(d => d.dt === selectedDayDt) || null;
       }
-      if (!weatherToShow && fullWeatherData.current) {
-        weatherToShow = { ...fullWeatherData.current };
-      }
-      setDisplayWeather(weatherToShow);
-    } else if (fullWeatherData.current) {
-      setDisplayWeather({ ...fullWeatherData.current });
     }
+
+    if (!weatherToShow && fullWeatherData.current) {
+      weatherToShow = { ...fullWeatherData.current };
+    }
+
+    setDisplayWeather(weatherToShow);
   }, [selectedDayDt, fullWeatherData]);
 
-useEffect(() => {
-  if (
-    !displayWeather ||
-    !displayWeather.main ||
-    (displayWeather.temperatura === undefined && displayWeather.temp_max === undefined)
-  ) {
-    setActividades([]);
-    return;
-  }
+  // Obtener actividades según clima (con o sin token)
+  useEffect(() => {
+    if (!displayWeather?.main) {
+      setActividades([]);
+      return;
+    }
 
-  const tempForActivity = displayWeather.temperatura !== undefined
-    ? displayWeather.temperatura
-    : displayWeather.temp_max;
-  const estadoDia = displayWeather.main;
-  const token = localStorage.getItem("accessToken");
+    const temp = displayWeather.temperatura ?? displayWeather.temp_max ?? 0;
+    const estado = displayWeather.main;
+    const token = localStorage.getItem("accessToken");
 
-  const fetchGenericas = () => {
-    return fetch(`http://localhost:8000/actividades/filtrar?estado=${encodeURIComponent(estadoDia)}&temp=${tempForActivity}`)
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setActividades(data);
-        } else {
-          console.warn("Respuesta inesperada al cargar actividades generales.");
+    const fetchGenericas = () => {
+      return fetch(`http://localhost:8000/actividades/filtrar?estado=${encodeURIComponent(estado)}&temp=${temp}`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) setActividades(data);
+          else setActividades([]);
+        })
+        .catch(err => {
+          console.error("Error actividades generales:", err);
           setActividades([]);
-        }
+        });
+    };
+
+    if (!token) {
+      fetchGenericas();
+      return;
+    }
+
+    fetch(`http://localhost:8000/actividades/recomendadas?estado=${encodeURIComponent(estado)}&temperatura=${temp}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => {
+        if (res.status === 404) return fetchGenericas(); // Sin preferencias
+        if (!res.ok) throw new Error(`Error ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        if (Array.isArray(data)) setActividades(data);
       })
       .catch(err => {
-        console.error('Error al obtener actividades generales:', err);
-        setActividades([]);
+        console.error("Error actividades recomendadas:", err);
+        fetchGenericas();
       });
-  };
+  }, [displayWeather]);
 
-  if (!token) {
-    console.warn("No hay token JWT. Cargando actividades generales.");
-    fetchGenericas();
-    return;
+ const handleUbicacionChange = (cityData) => {
+  if (cityData.lat && cityData.lon) {
+    setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
   }
-
-  fetch(`http://localhost:8000/actividades/recomendadas?estado=${encodeURIComponent(estadoDia)}&temperatura=${tempForActivity}`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  })
-    .then(res => {
-      if (res.status === 404) {
-        console.warn("Usuario sin preferencias. Cargando actividades generales.");
-        return fetchGenericas();
-      }
-      if (!res.ok) throw new Error(`Error ${res.status} al obtener actividades personalizadas`);
-      return res.json();
-    })
-    .then(data => {
-      if (Array.isArray(data)) {
-        setActividades(data);
-      }
-    })
-    .catch(err => {
-      console.error('Error al obtener actividades personalizadas:', err);
-      fetchGenericas(); // fallback en caso de error
-    });
-}, [displayWeather]);
-
-
-  const handleUbicacionChange = (newCityName, newCoords) => {
-    setCurrentCityName(newCityName);
-    if (newCoords) {
-      setMapCoords(newCoords);
-    }
-  };
-
+};
   const handleCityPresetSelect = async (cityName) => {
     setIsLoading(true);
     setError(null);
     try {
       const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}&limit=1`;
       const response = await fetch(url);
-      if (!response.ok) throw new Error("Error buscando coordenadas de ciudad preseleccionada.");
+      if (!response.ok) throw new Error("Error buscando coordenadas.");
       const data = await response.json();
       if (data && data.length > 0) {
         const cityData = data[0];
-        setCurrentCityName(cityData.display_name);
         if (cityData.lat && cityData.lon) {
           setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
         }
       } else {
-        setError("Ciudad preseleccionada no encontrada vía Nominatim.");
-        setIsLoading(false);
+        setError("Ciudad no encontrada.");
       }
     } catch (error) {
-      console.error("Error fetching preset city coords:", error);
-      setError(error.message || "Error al buscar ciudad preseleccionada.");
+      console.error("Error ciudad preseleccionada:", error);
+      setError(error.message || "Error al buscar ciudad.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -213,7 +160,6 @@ useEffect(() => {
   const handleDaySelect = (dayDt) => {
     setSelectedDayDt(dayDt);
   };
-
 
   if (isLoading && !fullWeatherData && !error) {
     return <div className={styles.fullPageLoading}>Cargando datos iniciales...</div>;
@@ -224,7 +170,7 @@ useEffect(() => {
   }
 
   if (!fullWeatherData) {
-    return <div className={styles.fullPageError}>No se pudieron cargar los datos del clima. Comprueba la ciudad e inténtalo de nuevo.</div>;
+    return <div className={styles.fullPageError}>No se pudieron cargar los datos del clima.</div>;
   }
 
   return (
@@ -233,16 +179,16 @@ useEffect(() => {
       <main className={styles.mainDashboardContent}>
         <div className={styles.leftColumn}>
           {isLoading && !displayWeather && <p className={styles.loadingMessage}>Actualizando clima...</p>}
-          {!isLoading && !displayWeather && fullWeatherData && <p className={styles.loadingMessage}>Selecciona un día para ver el detalle.</p>}
+          {!isLoading && !displayWeather && <p className={styles.loadingMessage}>Selecciona un día para ver el detalle.</p>}
           {displayWeather && <CurrentWeatherDisplay weatherData={displayWeather} cityName={fullWeatherData.ciudad} />}
-          {fullWeatherData.daily && fullWeatherData.daily.length > 0 && (
+          {fullWeatherData.daily?.length > 0 && (
             <DailyForecastNav
               dailyData={fullWeatherData.daily}
               onDaySelect={handleDaySelect}
               selectedDayDt={selectedDayDt}
             />
           )}
-          {fullWeatherData && fullWeatherData.hourly && fullWeatherData.hourly.length > 0 && (
+          {fullWeatherData.hourly?.length > 0 && (
             <HourlyForecastDisplay
               allHourlyData={fullWeatherData.hourly}
               selectedDayDt={selectedDayDt}

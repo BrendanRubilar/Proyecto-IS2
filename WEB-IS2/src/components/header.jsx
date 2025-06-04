@@ -23,11 +23,11 @@ const UbicacionSearch = ({ onUbicacionChange }) => {
     setIsLoading(false);
   };
 
-  const handleSelectCity = (cityData) => {
-    onUbicacionChange(cityData.display_name, [parseFloat(cityData.lat), parseFloat(cityData.lon)]);
-    setSearchTerm(cityData.display_name);
-    setSearchResults([]);
-  };
+const handleSelectCity = (cityData) => {
+  onUbicacionChange(cityData); // enviar todo el objeto
+  setSearchTerm(cityData.display_name);
+  setSearchResults([]);
+};
 
   return (
     <div className={styles.searchContainer}>
