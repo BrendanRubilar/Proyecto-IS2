@@ -19,6 +19,8 @@ class ActividadBase(BaseModel):
     nombre: str
     temperatura_min: float
     temperatura_max: float
+    humedad_max: float
+    viento_max: float
     estado_dia: str
     descripcion: str
 

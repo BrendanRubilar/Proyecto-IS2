@@ -70,13 +70,15 @@ def get_actividades(db: Session, skip: int = 0, limit: int = 10):
 
 
 # FILTRADO DE ACTIVIDADES con los datos de la API, instrucciones para DB (Esto le servirá a Juan).
-def filtrar_actividades(db: Session, estado: str, temp: float):
+def filtrar_actividades(db: Session, estado: str, temp: float, hum:float, viento: float):
     return (
         db.query(Actividad)
         .filter(
             Actividad.estado_dia == estado,
             Actividad.temperatura_min <= temp,
             Actividad.temperatura_max >= temp,
+            Actividad.humedad_max >= hum,
+            Actividad.viento_max >= viento
         )
         .all()
     )

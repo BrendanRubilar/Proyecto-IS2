@@ -118,10 +118,12 @@ def read_actividades_endpoint(skip: int = 0, limit: int = 100, db: Session = Dep
 def filtrar_actividades_endpoint(
     estado: str,
     temp: float,
+    hum: float,
+    viento: float,
     db: Session = Depends(get_db)
 ):
     estado = estado.capitalize()
-    return crud.filtrar_actividades(db=db, estado=estado, temp=temp)
+    return crud.filtrar_actividades(db=db, estado=estado, temp=temp, hum=hum, viento=viento)
 
 @app.get("/clima/por-coordenadas", response_model=schemas.FullWeatherReport, tags=["Clima"])
 def obtener_pronostico_por_coordenadas(lat: float, lon: float):
