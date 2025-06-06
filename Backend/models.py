@@ -16,7 +16,7 @@ class Actividad(Base):
     nombre = Column(String, index=True)
     temperatura_min = Column(Float)
     temperatura_max = Column(Float)
-    humedad_max = Column(Float)
+    humedad_max = Column(Integer)
     viento_max = Column(Float)
     estado_dia = Column(String)  # Por ejemplo: "rain", "snow", "cloud"
     descripcion = Column(String)

@@ -118,12 +118,27 @@ def read_actividades_endpoint(skip: int = 0, limit: int = 100, db: Session = Dep
 def filtrar_actividades_endpoint(
     estado: str,
     temp: float,
-    hum: float,
+    hum: int,
     viento: float,
     db: Session = Depends(get_db)
 ):
     estado = estado.capitalize()
     return crud.filtrar_actividades(db=db, estado=estado, temp=temp, hum=hum, viento=viento)
+
+
+
+#Crear dos endpoints de get y post para las preferencias
+@app.get("/preferencias/", response_model=list[schemas.Preferencias], tags=["Preferencias"])
+def read_preferencias(usr: schemas.User, db: Session = Depends(get_db)):
+    return crud.get_preferencias(db=db, usr=usr)
+
+
+@app.post("/preferencias/", response_model=schemas.Preferencias, tags=["Preferencias"])
+def crear_preferencias(pref_list: list[schemas.Preferencias], usr: schemas.User, db: Session = Depends(get_db)):
+    return crud.create_preferencias(db=db, pref_list=pref_list, usr=usr)
+
+
+
 
 @app.get("/clima/por-coordenadas", response_model=schemas.FullWeatherReport, tags=["Clima"])
 def obtener_pronostico_por_coordenadas(lat: float, lon: float):

@@ -19,7 +19,7 @@ class ActividadBase(BaseModel):
     nombre: str
     temperatura_min: float
     temperatura_max: float
-    humedad_max: float
+    humedad_max: int
     viento_max: float
     estado_dia: str
     descripcion: str
@@ -34,6 +34,14 @@ class Actividad(ActividadBase):
 
 class UserBase(BaseModel):
     email: EmailStr
+
+class Preferencias(BaseModel):
+    id: int
+    tipo: int
+    modalidad: int
+
+class PreferenciasCreate(Preferencias):
+    pass
 
 class UserCreate(UserBase):
     email: EmailStr

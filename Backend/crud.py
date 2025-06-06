@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 import models, schemas
-from models import Actividad, User
-from schemas import ActividadCreate, UserCreate
+from models import Actividad, User, UserPreference, ActivityType
+from schemas import ActividadCreate, UserCreate, Preferencias
 from passlib.context import CryptContext
 from typing import List
 import re
@@ -69,8 +69,36 @@ def get_actividades(db: Session, skip: int = 0, limit: int = 10):
     return db.query(Actividad).offset(skip).limit(limit).all()
 
 
+
+#definir GET y POST
+def get_preferencias(db: Session, usr: schemas.User):
+    return db.query(Preferencias).filter(User.id == usr.id).all()
+
+def create_preferencias(db: Session, pref_list: list[schemas.Preferencias], usr: schemas.User):
+    user = db.query(User).filter(User.id == usr.id)
+
+    if user:
+        #primero borrar todas las preferencias
+        db.query(UserPreference).filter(User.id == usr.id).delete()
+        db.commit()
+
+        for pref in pref_list:
+            #sumar todo a la bd
+            db.add(UserPreference(user_id = usr.id, activity_type_id = pref.tipo, modality_id = pref.modalidad))
+            
+        db.commit()
+        return pref_list[0]
+
+    else:
+        raise ValueError(  
+            "Usuario no encontrado."
+        )
+
+
+
+
 # FILTRADO DE ACTIVIDADES con los datos de la API, instrucciones para DB (Esto le servirá a Juan).
-def filtrar_actividades(db: Session, estado: str, temp: float, hum:float, viento: float):
+def filtrar_actividades(db: Session, estado: str, temp: float, hum:int, viento: float):
     return (
         db.query(Actividad)
         .filter(
