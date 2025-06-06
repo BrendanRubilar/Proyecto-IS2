@@ -100,7 +100,7 @@ const Header = ({ onUbicacionChange, onCityPresetSelect }) => {
         {isAuthenticated ? (
           <>
             <span className={styles.userInfo}> Bienvenido, {userEmail.split('@')[0]}</span>
-
+            <Link to="/preferences" className={styles.authLink}>Preferencias</Link>
             <button className={styles.logoutLink} onClick={handleLogout}>Cerrar sesión</button>
           </>
         ) : (

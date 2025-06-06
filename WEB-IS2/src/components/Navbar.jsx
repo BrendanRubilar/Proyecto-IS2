@@ -13,6 +13,7 @@ function Navbar({ onUbicacionChange }) {
 
       {/*Login/Register */}
       <div style={styles.right}>
+        <Link to="/preferences" className={styles.authLink}>Preferencias</Link>
         <Link to="/login" style={styles.link}>Login</Link>
         <Link to="/register" style={styles.link}>Register</Link>
       </div>
