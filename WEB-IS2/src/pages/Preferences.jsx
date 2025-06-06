@@ -1,111 +1,159 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import styles from './Preferences.module.css'; 
+import ToggleButton from '../components/ToggleButton'; 
+import Notification from '../components/Notification'; 
+
+// Definición de categorías de preferencias
+const PREFERENCE_CATEGORIES = {
+  deportiva: { label: 'Deportiva', types: ['Individual', 'Grupal', 'Virtual'] },
+  casa: { label: 'Casa', types: ['Individual', 'Grupal', 'Virtual'] },
+  entretenimiento: { label: 'Entretenimiento', types: ['Individual', 'Grupal', 'Virtual'] },
+  educativo: { label: 'Educativo', types: ['Individual', 'Grupal', 'Virtual'] },
+  recreativa: { label: 'Recreativa', types: ['Individual', 'Grupal', 'Virtual'] },
+  cocina: { label: 'Cocina', types: ['Individual', 'Grupal', 'Virtual'] },
+};
+
+// Función para generar claves únicas para las preferencias
+const generatePreferenceKey = (categoryKey, type) => `${categoryKey}-${type}`;
 
 const Preferences = () => {
-  //falta leer las preferencias al cargar la pagina
-  const [isOn11, setIsOn11] = useState(false);
-  const [isOn12, setIsOn12] = useState(false);
-  const [isOn13, setIsOn13] = useState(false);
-  const [isOn21, setIsOn21] = useState(false);
-  const [isOn22, setIsOn22] = useState(false);
-  const [isOn23, setIsOn23] = useState(false);
-  const [isOn31, setIsOn31] = useState(false);
-  const [isOn32, setIsOn32] = useState(false);
-  const [isOn33, setIsOn33] = useState(false);
-  const [isOn41, setIsOn41] = useState(false);
-  const [isOn42, setIsOn42] = useState(false);
-  const [isOn43, setIsOn43] = useState(false);
-  const [isOn51, setIsOn51] = useState(false);
-  const [isOn52, setIsOn52] = useState(false);
-  const [isOn53, setIsOn53] = useState(false);
-  const [isOn61, setIsOn61] = useState(false);
-  const [isOn62, setIsOn62] = useState(false);
-  const [isOn63, setIsOn63] = useState(false);
+  const navigate = useNavigate(); 
 
-  const toggleSwitch = (n) => {
-    if(n == 1)  setIsOn11(prevState => !prevState);
-    else if(n == 2) setIsOn12(prevState => !prevState);
-    else if(n == 3) setIsOn13(prevState => !prevState);
-    else if(n == 4) setIsOn21(prevState => !prevState);
-    else if(n == 5) setIsOn22(prevState => !prevState);
-    else if(n == 6) setIsOn23(prevState => !prevState);
-    else if(n == 7) setIsOn31(prevState => !prevState);
-    else if(n == 8) setIsOn32(prevState => !prevState);
-    else if(n == 9) setIsOn33(prevState => !prevState);
-    else if(n == 10) setIsOn41(prevState => !prevState);
-    else if(n == 11) setIsOn42(prevState => !prevState);
-    else if(n == 12) setIsOn43(prevState => !prevState);
-    else if(n == 13) setIsOn51(prevState => !prevState);
-    else if(n == 14) setIsOn52(prevState => !prevState);
-    else if(n == 15) setIsOn53(prevState => !prevState);
-    else if(n == 16) setIsOn61(prevState => !prevState);
-    else if(n == 17) setIsOn62(prevState => !prevState);
-    else if(n == 18) setIsOn63(prevState => !prevState);
-  }
+  // Estado para las preferencias, cargando desde localStorage o inicializando
+  const [preferences, setPreferences] = useState(() => {
+    const savedPreferences = localStorage.getItem('userPreferences');
+    if (savedPreferences) { 
+      try {
+        const parsed = JSON.parse(savedPreferences);
+        if (typeof parsed === 'object' && parsed !== null) {
+          return parsed;
+        }
+      } catch (e) {
+        console.error("Error al parsear preferencias de localStorage:", e);
+      }
+    }
+    // Estado inicial por defecto
+    const initialState = {};
+    Object.keys(PREFERENCE_CATEGORIES).forEach(categoryKey => {
+      PREFERENCE_CATEGORIES[categoryKey].types.forEach(type => {
+        initialState[generatePreferenceKey(categoryKey, type)] = false;
+      });
+    });
+    return initialState;
+  });
 
-  return (
-    <div>
-      <h1>Preferencias de actividades</h1>
-      <h2>Deportiva</h2>
-      <input type="checkbox" id="toggle11" onClick={() => toggleSwitch(1)}></input>
-      <label for="toggle11">Individual</label>
+  // Estados para la notificación
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationType, setNotificationType] = useState('success');
+  const [showNotification, setShowNotification] = useState(false);
 
-      <input type="checkbox" id="toggle12" onClick={() => toggleSwitch(2)}></input>
-      <label for="toggle12">Grupal</label>
+  // Estado para gestionar la acción de guardado y ocultar el botón original
+  const [isSaving, setIsSaving] = useState(false); 
 
-      <input type="checkbox" id="toggle13" onClick={() => toggleSwitch(3)}></input>
-      <label for="toggle13">Virtual</label>
+  // Efecto para guardar las preferencias en localStorage cada vez que cambian
+  useEffect(() => {
+    if (typeof preferences === 'object' && preferences !== null) {
+      localStorage.setItem('userPreferences', JSON.stringify(preferences));
+    }
+  }, [preferences]);
 
-      <h2>Casa</h2>
-      <input type="checkbox" id="toggle21" onClick={() => toggleSwitch(4)}></input>
-      <label for="toggle21">Individual</label>
+  // Manejador para cambiar el estado de una preferencia individual
+  const handleTogglePreference = (categoryKey, type) => {
+    const prefKey = generatePreferenceKey(categoryKey, type);
+    setPreferences(prev => {
+      const currentPrefs = (typeof prev === 'object' && prev !== null) ? prev : {};
+      return { 
+        ...currentPrefs, 
+        [prefKey]: !currentPrefs[prefKey] 
+      };
+    });
+  };
 
-      <input type="checkbox" id="toggle22" onClick={() => toggleSwitch(5)}></input>
-      <label for="toggle22">Grupal</label>
+  // Manejador para el botón "Guardar y Volver"
+  const handleSaveChanges = () => {
+    if (isSaving) return; // Evitar múltiples clics si ya se está procesando
 
-      <input type="checkbox" id="toggle23" onClick={() => toggleSwitch(6)}></input>
-      <label for="toggle23">Virtual</label>
+    setIsSaving(true); // Ocultar el botón original y comenzar el proceso de "guardado"
+    setNotificationMessage('¡Preferencias Guardadas!'); 
+    setNotificationType('success');
+    setShowNotification(true); // Indicar al componente Notification que debe empezar a mostrarse
 
-      <h2>Entretenimiento</h2>
-      <input type="checkbox" id="toggle31" onClick={() => toggleSwitch(7)}></input>
-      <label for="toggle31">Individual</label>
+    const notificationEntryAnimationTime = 600;
+    const notificationVisibleTimeProp = 1500;  
+    const notificationFadeOutTimeProp = 0;     
 
-      <input type="checkbox" id="toggle32" onClick={() => toggleSwitch(8)}></input>
-      <label for="toggle32">Grupal</label>
-
-      <input type="checkbox" id="toggle33" onClick={() => toggleSwitch(9)}></input>
-      <label for="toggle33">Virtual</label>
-
-      <h2>Educativo</h2>
-      <input type="checkbox" id="toggle41" onClick={() => toggleSwitch(10)}></input>
-        <label for="toggle41">Individual</label>
-
-      <input type="checkbox" id="toggle42" onClick={() => toggleSwitch(11)}></input>
-      <label for="toggle42">Grupal</label>
-
-      <input type="checkbox" id="toggle43" onClick={() => toggleSwitch(12)}></input>
-      <label for="toggle43">Virtual</label>
-
-      <h2>Recreativa</h2>
-      <input type="checkbox" id="toggle51" onClick={() => toggleSwitch(13)}></input>
-        <label for="toggle51">Individual</label>
-
-      <input type="checkbox" id="toggle52" onClick={() => toggleSwitch(14)}></input>
-      <label for="toggle52">Grupal</label>
-
-      <input type="checkbox" id="toggle53" onClick={() => toggleSwitch(15)}></input>
-      <label for="toggle53">Virtual</label>
-
-      <h2>Cocina</h2>
-      <input type="checkbox" id="toggle61" onClick={() => toggleSwitch(16)}></input>
-        <label for="toggle61">Individual</label>
-
-      <input type="checkbox" id="toggle62" onClick={() => toggleSwitch(17)}></input>
-      <label for="toggle62">Grupal</label>
-
-      <input type="checkbox" id="toggle63" onClick={() => toggleSwitch(18)}></input>
-      <label for="toggle63">Virtual</label>
-    </div>
+    // Tiempo total que la notificación estará en pantalla (desde que empieza a aparecer hasta que termina de desaparecer)
+    const totalNotificationDisplayCycle = notificationEntryAnimationTime + notificationVisibleTimeProp + notificationFadeOutTimeProp;
     
+    // Añadir un pequeño margen para asegurar que la animación de fadeOut termine completamente
+    // y que el callback onClose de Notification tenga tiempo de ejecutarse si es necesario.
+    const navigationDelay = totalNotificationDisplayCycle; 
+
+    setTimeout(() => {
+      navigate('/'); // Redirigir a la página principal
+      // El estado (isSaving, showNotification) se reseteará cuando este componente se desmonte
+      // y se vuelva a montar la próxima vez que se visite la página.
+    }, navigationDelay); 
+  };
+
+  // Callback para cuando la notificación ha completado su ciclo (llamado desde Notification.jsx)
+  const handleNotificationClose = () => {
+    setShowNotification(false); // El padre indica que la notificación ya no debe "intentar" mostrarse
+    // No es necesario cambiar 'isSaving' aquí si la navegación siempre ocurre y desmonta este componente.
+  };
+  
+  return (
+    <div className={styles.preferencesContainer}>
+      <h1 className={styles.mainTitle}>Preferencias de Actividades</h1>
+      <p className={styles.subtitle}>
+        Selecciona los tipos de actividades que más te interesan.
+        Esto nos ayudará a personalizar tus recomendaciones.
+      </p>
+
+      {Object.entries(PREFERENCE_CATEGORIES).map(([categoryKey, categoryData]) => (
+        <section key={categoryKey} className={styles.categorySection}>
+          <h2 className={styles.categoryTitle}>{categoryData.label}</h2>
+          <div className={styles.toggleGroup}>
+            {categoryData.types.map(type => {
+              const prefKey = generatePreferenceKey(categoryKey, type);
+              const isActive = preferences && preferences[prefKey] ? !!preferences[prefKey] : false;
+              return (
+                <ToggleButton
+                  key={prefKey}
+                  label={type}
+                  isActive={isActive}
+                  onClick={() => handleTogglePreference(categoryKey, type)}
+                />
+              );
+            })}
+          </div>
+        </section>
+      ))}
+      
+      <div className={styles.saveButtonWrapper}> 
+        {!isSaving && ( // Renderizar el botón solo si no se está en el proceso de guardado/notificación
+          <button 
+              className={styles.saveButton} 
+              onClick={handleSaveChanges}
+              disabled={isSaving} // Deshabilitar por si acaso mientras isSaving es true
+          >
+              Guardar y Volver
+          </button>
+        )}
+        {/* El componente Notification gestiona su propia aparición/desaparición basado en 'isVisible' */}
+        <Notification 
+          message={notificationMessage} 
+          type={notificationType}
+          isVisible={showNotification} 
+          onClose={handleNotificationClose} 
+          duration={1800}       // Tiempo que la notificación está completamente visible y activa (prop para Notification.jsx)
+          fadeOutTime={300}     // Duración de la animación CSS de fadeOut (prop para Notification.jsx)
+          // entryAnimationTime={600} // Si Notification.jsx necesitara esta prop explícitamente
+          buttonText="Guardar y Volver" 
+        />
+      </div>
+    </div>
   );
 };
 

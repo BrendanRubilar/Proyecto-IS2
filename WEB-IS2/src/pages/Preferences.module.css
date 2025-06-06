@@ -1,0 +1,113 @@
+.preferencesContainer {
+  max-width: 900px; 
+  margin: 2rem auto; 
+  padding: 2rem;
+  background-color: rgba(13, 17, 23, 0.3); 
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 0.75rem; 
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  color: #e5e7eb; 
+}
+
+.mainTitle {
+  font-size: 2.25rem; 
+  font-weight: 700;
+  color: #ffffff; 
+  text-align: center;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.025em; 
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #9ca3af; 
+  text-align: center;
+  margin-bottom: 2.5rem;
+  max-width: 600px; 
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.categorySection {
+  margin-bottom: 2.5rem; 
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(55, 65, 81, 0.5); 
+  /* Para centrar el contenido de la sección (título y grupo de botones) */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra los hijos horizontalmente */
+}
+.categorySection:last-child {
+  border-bottom: none; 
+  margin-bottom: 1.5rem; 
+}
+
+
+.categoryTitle {
+  font-size: 1.5rem; 
+  font-weight: 600;
+  color: #93c5fd; 
+  margin-bottom: 1.25rem;
+  /* Eliminamos padding-left y border-left para un centrado más limpio del texto en sí */
+  /* padding-left: 0.5rem;  */
+  /* border-left: 3px solid #3b82f6; */
+  text-align: center; /* Asegura que el texto dentro del h2 esté centrado */
+  width: 100%; /* Para que text-align: center funcione bien si el h2 no ocupa todo el ancho */
+}
+
+.toggleGroup {
+  display: flex;
+  flex-wrap: wrap; 
+  gap: 1rem; 
+  justify-content: center; /* Centra los botones toggle dentro del grupo */
+  width: 100%; /* Asegura que el grupo pueda usar el espacio para centrar */
+  max-width: 650px; /* Opcional: un ancho máximo para el grupo de botones si se ve muy extendido */
+}
+
+.saveButtonWrapper {
+  position: relative; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  margin-top: 2rem;
+  min-height: 48px;
+}
+
+.saveButton {
+  background-color: #238636; 
+  color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-out, transform 0.2s ease-out, box-shadow 0.2s ease-out, opacity 0.3s ease-out;
+  z-index: 5; 
+  opacity: 1; 
+}
+
+.saveButton:hover {
+  background-color: #2ea043;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
+}
+
+/* Media query para mejorar la responsividad en pantallas pequeñas */
+@media (max-width: 700px) { /* Ajustado el breakpoint para el max-width de toggleGroup */
+  .preferencesContainer {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  .mainTitle {
+    font-size: 1.8rem;
+  }
+  .categoryTitle {
+    font-size: 1.25rem;
+  }
+  .toggleGroup {
+    justify-content: center; 
+    max-width: 100%;
+  }
+}
