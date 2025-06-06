@@ -18,10 +18,10 @@ function Inicio() {
   const [error, setError] = useState(null);
   const [selectedCityName, setSelectedCityName] = useState('Concepción');
   // Obtener email del usuario
-  useEffect(() => {
-    const email = localStorage.getItem('userEmail');
-    if (email) setUserEmail(email);
-  }, []);
+  //useEffect(() => {
+  //  const email = localStorage.getItem('userEmail');
+  //  if (email) setUserEmail(email);
+  // }, []);
 
   // Obtener datos del clima
   const fetchWeather = async (lat, lon) => {
