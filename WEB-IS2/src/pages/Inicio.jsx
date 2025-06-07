@@ -7,6 +7,7 @@ import DailyForecastNav from '../components/DailyForecastNav';
 import HourlyForecastDisplay from '../components/HourlyForecastDisplay';
 import Tarjetas from '../components/Tarjetas';
 import Map from '../components/Map';
+import ModalAviso from '../components/ModalNoPreferences';
 
 function Inicio() {
   const [mapCoords, setMapCoords] = useState([-36.82707, -73.05021]);
@@ -17,6 +18,7 @@ function Inicio() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCityName, setSelectedCityName] = useState('Concepción');
+  const [mostrarModal, setMostrarModal] = useState(false);
   // Obtener email del usuario
   //useEffect(() => {
   //  const email = localStorage.getItem('userEmail');
@@ -118,7 +120,11 @@ function Inicio() {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => {
-        if (res.status === 404) return fetchGenericas(); // Sin preferencias
+        if (res.status === 404){
+
+          setMostrarModal(true); 
+          return fetchGenericas(); // Sin preferencias
+        } // Sin preferencias
         if (!res.ok) throw new Error(`Error ${res.status}`);
         return res.json();
       })
@@ -223,6 +229,12 @@ function Inicio() {
           <Tarjetas recomendaciones={actividades} />
         </div>
       </main>
+      {mostrarModal && (
+        <ModalAviso
+          mensaje= "No se encontraron recomendaciones personalizadas ya que no has configurado tus preferencias.  Se mostrarán actividades según el clima."
+          onClose={() => setMostrarModal(false)}
+        />
+      )}
     </div>
   );
 }
