@@ -35,13 +35,30 @@ class Actividad(ActividadBase):
 class UserBase(BaseModel):
     email: EmailStr
 
-class Preferencias(BaseModel):
-    id: int
-    tipo: int
-    modalidad: int
+from pydantic import BaseModel, Field
 
-class PreferenciasCreate(Preferencias):
-    pass
+class Preferencias(BaseModel):
+    user_id: int
+    tipo: int = Field(..., alias="activity_type_id")
+    modalidad: int = Field(..., alias="modality_id")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class PreferenciasCreate(BaseModel):
+    tipo: int = Field(..., alias="activity_type_id")
+    modalidad: int = Field(..., alias="modality_id")
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True
 
 class UserCreate(UserBase):
     email: EmailStr

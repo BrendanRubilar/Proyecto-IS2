@@ -30,9 +30,9 @@ const CurrentWeatherDisplay = ({ weatherData, cityName }) => {
         <div className={styles.locationTime}>
           <h2>{cityName}</h2>
           {/* Asegurarse que weatherData.dt exista antes de usarlo */}
-          <p>
+          <h1>
             {weatherData.dayLabel && <p>{weatherData.dayLabel}</p>}
-          </p>
+          </h1>
         </div>
         <div className={styles.tempIcon}>
           {weatherData.icono && (

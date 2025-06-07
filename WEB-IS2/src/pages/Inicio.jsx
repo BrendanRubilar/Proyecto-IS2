@@ -88,10 +88,16 @@ function Inicio() {
 
     const temp = displayWeather.temperatura ?? displayWeather.temp_max ?? 0;
     const estado = displayWeather.main;
+    const description = displayWeather.descripcion
+    const hum = displayWeather.humedad
+    const viento = displayWeather.viento_velocidad
     const token = localStorage.getItem("accessToken");
-
+    console.log(hum)
+    console.log(viento)
+    console.log(estado)
+    console.log(description)
     const fetchGenericas = () => {
-      return fetch(`http://localhost:8000/actividades/filtrar?estado=${encodeURIComponent(estado)}&temp=${temp}`)
+      return fetch(`http://localhost:8000/actividades/filtrar?estado=${encodeURIComponent(estado)}&temp=${temp}&hum=${hum}&viento=${viento}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) setActividades(data);
@@ -108,7 +114,7 @@ function Inicio() {
       return;
     }
 
-    fetch(`http://localhost:8000/actividades/recomendadas?estado=${encodeURIComponent(estado)}&temperatura=${temp}`, {
+    fetch(`http://localhost:8000/actividades/recomendadas?estado=${encodeURIComponent(estado)}&temperatura=${temp}&hum=${hum}&viento=${viento}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => {

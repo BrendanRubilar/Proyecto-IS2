@@ -70,35 +70,41 @@ def get_actividades(db: Session, skip: int = 0, limit: int = 10):
 
 
 
-#definir GET y POST
-def get_preferencias(db: Session, usr: schemas.User):
-    return db.query(Preferencias).filter(User.id == usr.id).all()
+def get_preferencias(db: Session, usr: User):
+    return db.query(models.UserPreference).filter(models.UserPreference.user_id == usr.id).all()
+def create_preferencias(db: Session, pref_list: list[schemas.PreferenciasCreate], usr: User):
+    if usr is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-def create_preferencias(db: Session, pref_list: list[schemas.Preferencias], usr: schemas.User):
-    user = db.query(User).filter(User.id == usr.id)
+    db.query(models.UserPreference).filter(models.UserPreference.user_id == usr.id).delete()
+    db.commit()
 
-    if user:
-        #primero borrar todas las preferencias
-        db.query(UserPreference).filter(User.id == usr.id).delete()
-        db.commit()
-
-        for pref in pref_list:
-            #sumar todo a la bd
-            db.add(UserPreference(user_id = usr.id, activity_type_id = pref.tipo, modality_id = pref.modalidad))
-            
-        db.commit()
-        return pref_list[0]
-
-    else:
-        raise ValueError(  
-            "Usuario no encontrado."
+    nuevas_prefs = []
+    for pref in pref_list:
+        nueva_pref = models.UserPreference(
+            user_id=usr.id,
+            activity_type_id=pref.tipo,
+            modality_id=pref.modalidad
         )
+        db.add(nueva_pref)
+        nuevas_prefs.append(nueva_pref)
+
+    db.commit()
+
+    for pref in nuevas_prefs:
+        db.refresh(pref)
+
+    return nuevas_prefs
+
+
+
+
 
 
 
 
 # FILTRADO DE ACTIVIDADES con los datos de la API, instrucciones para DB (Esto le servirá a Juan).
-def filtrar_actividades(db: Session, estado: str, temp: float, hum:int, viento: float):
+def filtrar_actividades(db: Session, estado: str, temp: float, hum: int, viento: float):
     return (
         db.query(Actividad)
         .filter(
@@ -117,7 +123,9 @@ def get_actividades_por_clima_y_preferencias(
     temperatura: float,
     estado: str,
     activity_type_ids: List[int],
-    modality_ids: List[int]
+    modality_ids: List[int],
+    hum: int,
+    viento: float
 ) -> List[models.Actividad]:
     return (
         db.query(models.Actividad)
@@ -127,7 +135,9 @@ def get_actividades_por_clima_y_preferencias(
             models.ActivityPreference.modality_id.in_(modality_ids),
             models.Actividad.temperatura_min <= temperatura,
             models.Actividad.temperatura_max >= temperatura,
-            models.Actividad.estado_dia == estado
+            models.Actividad.estado_dia == estado,
+            models.Actividad.humedad_max >= hum,
+            models.Actividad.viento_max >= viento
         )
         .all()
     )

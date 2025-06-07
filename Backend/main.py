@@ -27,6 +27,9 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 120))
 
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 # Crear las tablas en la base de datos si no existen
 models.Base.metadata.create_all(bind=engine)
 
@@ -127,15 +130,73 @@ def filtrar_actividades_endpoint(
 
 
 
-#Crear dos endpoints de get y post para las preferencias
-@app.get("/preferencias/", response_model=list[schemas.Preferencias], tags=["Preferencias"])
-def read_preferencias(usr: schemas.User, db: Session = Depends(get_db)):
-    return crud.get_preferencias(db=db, usr=usr)
 
 
-@app.post("/preferencias/", response_model=schemas.Preferencias, tags=["Preferencias"])
-def crear_preferencias(pref_list: list[schemas.Preferencias], usr: schemas.User, db: Session = Depends(get_db)):
-    return crud.create_preferencias(db=db, pref_list=pref_list, usr=usr)
+
+
+
+
+
+
+
+@app.get("/preferencias/", response_model=List[schemas.Preferencias], tags=["Preferencias"])
+def read_preferencias(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="No se pudieron validar las credenciales",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = crud.get_user_by_email(db, email=email)
+    if user is None:
+        raise credentials_exception
+
+    return crud.get_preferencias(db=db, usr=user)
+
+
+from fastapi import APIRouter, Depends, HTTPException
+from typing import List
+
+@app.post("/preferencias/", response_model=List[schemas.Preferencias], tags=["Preferencias"])
+def crear_preferencias(
+    pref_list: List[schemas.PreferenciasCreate],  # <--- Aquí el cambio
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    # Validar token y usuario
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="No se pudieron validar las credenciales",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = crud.get_user_by_email(db, email=email)
+    if user is None:
+        raise credentials_exception
+
+    nuevas_prefs = crud.create_preferencias(db=db, pref_list=pref_list, usr=user)
+
+    return nuevas_prefs
+
 
 
 
@@ -249,11 +310,11 @@ def obtener_pronostico_por_coordenadas(lat: float, lon: float):
         
         day_label = ""
         if day_date_local == city_today_local:
-            day_label = "Hoy"
+            day_label = "Today"
         elif (day_date_local - city_today_local).days == 1:
-            day_label = "Mañana"
+            day_label = "Tomorrow"
         else:
-            day_label = day_date_local.strftime("%a").capitalize().replace(".","")
+            day_label = day_date_local.strftime("%A").capitalize().replace(".","")
 
         daily_final_list.append(schemas.DailyForecastItem(
             dt=data["dt_utc_start_day"],
@@ -285,8 +346,7 @@ def obtener_pronostico_por_coordenadas(lat: float, lon: float):
 
 
 # --- Autenticación ---
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 def authenticate_user(db: Session, email: str, password: str) -> Optional[models.User]:
     user = crud.get_user_by_email(db, email)
@@ -355,6 +415,8 @@ async def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depen
 def get_actividades_recomendadas(
     temperatura: float,
     estado: str,
+    hum: int,
+    viento: float,
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ):
@@ -401,6 +463,8 @@ def get_actividades_recomendadas(
         db=db,
         temperatura=temperatura,
         estado=estado,
+        hum=hum, 
+        viento=viento,
         activity_type_ids=activity_type_ids,
         modality_ids=modality_ids
     )
