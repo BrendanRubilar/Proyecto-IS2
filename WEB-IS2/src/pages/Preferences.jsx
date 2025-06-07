@@ -62,6 +62,7 @@ const Preferences = () => {
   };
 
   useEffect(() => {
+    
     const token = localStorage.getItem("accessToken");
     if (!token) {
       setPreferences(getInitialPreferences());
@@ -69,8 +70,10 @@ const Preferences = () => {
     }
     const fetchPreferences = async () => {
       try {
+        
+        console.log(token)
         const response = await fetch('http://localhost:8000/preferencias/', {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!response.ok) throw new Error('Error al obtener preferencias');
         const data = await response.json();
@@ -78,9 +81,16 @@ const Preferences = () => {
         console.log("Preferencias recibidas del servidor:", data);
 
         const initialPrefs = getInitialPreferences();
-        data.forEach(({ tipo, modalidad }) => {
+        data.forEach(({ activity_type_id, modality_id}) => {
+          const tipo = activity_type_id
+          const modalidad = modality_id
+          console.log("tipo es ",tipo)
+          console.log("modalidad es ", modalidad)
           const categoryKey = tipoMap[tipo];
           const type = modalidadMap[modalidad];
+
+          console.log(categoryKey)
+          console.log(type)
           if (categoryKey && type) {
             initialPrefs[generatePreferenceKey(categoryKey, type)] = true;
           }
@@ -110,6 +120,7 @@ const Preferences = () => {
         const [categoryKey, type] = key.split('-');
         const tipo = reverseTipoMap[categoryKey];
         const modalidad = reverseModalidadMap[type];
+
         if (typeof tipo === 'number' && typeof modalidad === 'number') {
           return { tipo, modalidad };
         }
