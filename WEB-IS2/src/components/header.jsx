@@ -82,7 +82,7 @@ const Header = ({ onUbicacionChange, onCityPresetSelect }) => {
     alert('Sesión cerrada correctamente');
   };
 
-  const cityPresets = ["Gran Santiago", "Viña del Mar", "Antofagasta", "Temuco", "Puerto Montt"];
+  const cityPresets = ["Santiago, Chile", "Viña del Mar, Chile", "Antofagasta, Chile", "Temuco, Chile", "Puerto Montt, Chile"];
 
   return (
     <header className={styles.appHeader}>

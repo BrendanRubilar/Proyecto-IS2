@@ -141,33 +141,36 @@ function Inicio() {
     if (cityData.lat && cityData.lon) {
       console.log("Ciudad seleccionada:", cityData.display_name); // Depuración
       setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
+      console.log(cityData.display_name)
       setSelectedCityName(cityData.display_name);
     }
   };
 
-  const handleCityPresetSelect = async (cityName) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}&limit=1`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Error buscando coordenadas.");
-      const data = await response.json();
-      if (data && data.length > 0) {
-        const cityData = data[0];
-        if (cityData.lat && cityData.lon) {
-          setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
-        }
-      } else {
-        setError("Ciudad no encontrada.");
+const handleCityPresetSelect = async (cityName) => {
+  setIsLoading(true);
+  setError(null);
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}&limit=1`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Error buscando coordenadas.");
+    const data = await response.json();
+    if (data && data.length > 0) {
+      const cityData = data[0];
+      if (cityData.lat && cityData.lon) {
+        setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
+        setSelectedCityName(cityData.display_name); // 👈 Esta línea es la clave
       }
-    } catch (error) {
-      console.error("Error ciudad preseleccionada:", error);
-      setError(error.message || "Error al buscar ciudad.");
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError("Ciudad no encontrada.");
     }
-  };
+  } catch (error) {
+    console.error("Error ciudad preseleccionada:", error);
+    setError(error.message || "Error al buscar ciudad.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const handleCitySelect = ({ lat, lon, name }) => {
     setMapCoords([parseFloat(lat), parseFloat(lon)]);
@@ -207,6 +210,7 @@ function Inicio() {
             <CurrentWeatherDisplay
               weatherData={displayWeather}
               cityName={selectedCityName} // Depuración
+              
             />
           )}
           {fullWeatherData.daily?.length > 0 && (
