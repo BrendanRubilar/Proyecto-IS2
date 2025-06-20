@@ -17,7 +17,7 @@ from database import SessionLocal
 db: Session = SessionLocal()
 
 # Obtén el usuario con id=3
-user = db.query(User).filter(User.id == 2).first()
+user = db.query(User).filter(User.id == 1).first()
 
 # Verifica que exista
 if user:

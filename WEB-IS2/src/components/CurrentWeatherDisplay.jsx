@@ -30,10 +30,9 @@ const CurrentWeatherDisplay = ({ weatherData, cityName }) => {
         <div className={styles.locationTime}>
           <h2>{cityName}</h2>
           {/* Asegurarse que weatherData.dt exista antes de usarlo */}
-          <p>
-            {weatherData.dt ? new Date(weatherData.dt * 1000).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : ''}
-            {weatherData.dayLabel && weatherData.dt ? ` - ${weatherData.dayLabel}` : (weatherData.dayLabel || '')}
-          </p>
+          <h1>
+            {weatherData.dayLabel && <p>{weatherData.dayLabel}</p>}
+          </h1>
         </div>
         <div className={styles.tempIcon}>
           {weatherData.icono && (

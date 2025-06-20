@@ -19,6 +19,8 @@ class ActividadBase(BaseModel):
     nombre: str
     temperatura_min: float
     temperatura_max: float
+    humedad_max: int
+    viento_max: float
     estado_dia: str
     descripcion: str
 
@@ -32,6 +34,31 @@ class Actividad(ActividadBase):
 
 class UserBase(BaseModel):
     email: EmailStr
+
+from pydantic import BaseModel, Field
+
+class Preferencias(BaseModel):
+    user_id: int
+    tipo: int = Field(..., alias="activity_type_id")
+    modalidad: int = Field(..., alias="modality_id")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+
+class PreferenciasCreate(BaseModel):
+    tipo: int = Field(..., alias="activity_type_id")
+    modalidad: int = Field(..., alias="modality_id")
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True
 
 class UserCreate(UserBase):
     password: str

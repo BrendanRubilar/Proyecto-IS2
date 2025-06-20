@@ -7,6 +7,7 @@ import DailyForecastNav from '../components/DailyForecastNav';
 import HourlyForecastDisplay from '../components/HourlyForecastDisplay';
 import Tarjetas from '../components/Tarjetas';
 import Map from '../components/Map';
+import ModalAviso from '../components/ModalNoPreferences';
 
 function Inicio() {
   const [mapCoords, setMapCoords] = useState([-36.82707, -73.05021]);
@@ -17,11 +18,12 @@ function Inicio() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCityName, setSelectedCityName] = useState('Concepción');
+  const [mostrarModal, setMostrarModal] = useState(false);
   // Obtener email del usuario
-  useEffect(() => {
-    const email = localStorage.getItem('userEmail');
-    if (email) setUserEmail(email);
-  }, []);
+  //useEffect(() => {
+  //  const email = localStorage.getItem('userEmail');
+  //  if (email) setUserEmail(email);
+  // }, []);
 
   // Obtener datos del clima
   const fetchWeather = async (lat, lon) => {
@@ -88,10 +90,16 @@ function Inicio() {
 
     const temp = displayWeather.temperatura ?? displayWeather.temp_max ?? 0;
     const estado = displayWeather.main;
+    const description = displayWeather.descripcion
+    const hum = displayWeather.humedad
+    const viento = displayWeather.viento_velocidad
     const token = localStorage.getItem("accessToken");
-
+    console.log(hum)
+    console.log(viento)
+    console.log(estado)
+    console.log(description)
     const fetchGenericas = () => {
-      return fetch(`http://localhost:8000/actividades/filtrar?estado=${encodeURIComponent(estado)}&temp=${temp}`)
+      return fetch(`http://localhost:8000/actividades/filtrar?estado=${encodeURIComponent(estado)}&temp=${temp}&hum=${hum}&viento=${viento}`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) setActividades(data);
@@ -108,11 +116,15 @@ function Inicio() {
       return;
     }
 
-    fetch(`http://localhost:8000/actividades/recomendadas?estado=${encodeURIComponent(estado)}&temperatura=${temp}`, {
+    fetch(`http://localhost:8000/actividades/recomendadas?estado=${encodeURIComponent(estado)}&temperatura=${temp}&hum=${hum}&viento=${viento}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => {
-        if (res.status === 404) return fetchGenericas(); // Sin preferencias
+        if (res.status === 404){
+
+          setMostrarModal(true); 
+          return fetchGenericas(); // Sin preferencias
+        } // Sin preferencias
         if (!res.ok) throw new Error(`Error ${res.status}`);
         return res.json();
       })
@@ -129,33 +141,36 @@ function Inicio() {
     if (cityData.lat && cityData.lon) {
       console.log("Ciudad seleccionada:", cityData.display_name); // Depuración
       setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
+      console.log(cityData.display_name)
       setSelectedCityName(cityData.display_name);
     }
   };
 
-  const handleCityPresetSelect = async (cityName) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}&limit=1`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Error buscando coordenadas.");
-      const data = await response.json();
-      if (data && data.length > 0) {
-        const cityData = data[0];
-        if (cityData.lat && cityData.lon) {
-          setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
-        }
-      } else {
-        setError("Ciudad no encontrada.");
+const handleCityPresetSelect = async (cityName) => {
+  setIsLoading(true);
+  setError(null);
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}&limit=1`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Error buscando coordenadas.");
+    const data = await response.json();
+    if (data && data.length > 0) {
+      const cityData = data[0];
+      if (cityData.lat && cityData.lon) {
+        setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
+        setSelectedCityName(cityData.display_name); // 👈 Esta línea es la clave
       }
-    } catch (error) {
-      console.error("Error ciudad preseleccionada:", error);
-      setError(error.message || "Error al buscar ciudad.");
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError("Ciudad no encontrada.");
     }
-  };
+  } catch (error) {
+    console.error("Error ciudad preseleccionada:", error);
+    setError(error.message || "Error al buscar ciudad.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const handleCitySelect = ({ lat, lon, name }) => {
     setMapCoords([parseFloat(lat), parseFloat(lon)]);
@@ -195,6 +210,7 @@ function Inicio() {
             <CurrentWeatherDisplay
               weatherData={displayWeather}
               cityName={selectedCityName} // Depuración
+              
             />
           )}
           {fullWeatherData.daily?.length > 0 && (
@@ -217,6 +233,12 @@ function Inicio() {
           <Tarjetas recomendaciones={actividades} />
         </div>
       </main>
+      {mostrarModal && (
+        <ModalAviso
+          mensaje= "No se encontraron recomendaciones personalizadas ya que no has configurado tus preferencias.  Se mostrarán actividades según el clima."
+          onClose={() => setMostrarModal(false)}
+        />
+      )}
     </div>
   );
 }

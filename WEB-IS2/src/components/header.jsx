@@ -82,7 +82,7 @@ const Header = ({ onUbicacionChange, onCityPresetSelect }) => {
     alert('Sesión cerrada correctamente');
   };
 
-  const cityPresets = ["Gran Santiago", "Viña del Mar", "Antofagasta", "Temuco", "Puerto Montt"];
+  const cityPresets = ["Santiago, Chile", "Viña del Mar, Chile", "Antofagasta, Chile", "Temuco, Chile", "Puerto Montt, Chile"];
 
   return (
     <header className={styles.appHeader}>
@@ -100,7 +100,7 @@ const Header = ({ onUbicacionChange, onCityPresetSelect }) => {
         {isAuthenticated ? (
           <>
             <span className={styles.userInfo}> Bienvenido, {userEmail.split('@')[0]}</span>
-
+            <Link to="/preferences" className={styles.authLink}>Preferencias</Link>
             <button className={styles.logoutLink} onClick={handleLogout}>Cerrar sesión</button>
           </>
         ) : (
