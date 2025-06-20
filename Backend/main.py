@@ -266,10 +266,27 @@ def obtener_pronostico_por_coordenadas(lat: float, lon: float):
         daily=daily_final_list
     )
 
-
 # --- Autenticación ---
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="No se pudieron validar las credenciales",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: Optional[str] = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    user = crud.get_user_by_email(db, email=email)
+    if user is None:
+        raise credentials_exception
+    return user
 
 def authenticate_user(db: Session, email: str, password: str) -> Optional[models.User]:
     user = crud.get_user_by_email(db, email)
@@ -315,24 +332,35 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
 
 
 @app.get("/users/me", response_model=schemas.User, tags=["Usuarios"])
-async def read_users_me(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    credentials_exception = HTTPException(
-        status_code=401, 
-        detail="No se pudieron validar las credenciales",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: Optional[str] = payload.get("sub") 
-        if email is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    
-    user = crud.get_user_by_email(db, email=email) 
-    if user is None:
-        raise credentials_exception
-    return user
+async def read_users_me(current_user: models.User = Depends(get_current_user)):
+    return current_user
+
+# --- Endpoints para Actividades Personalizadas, esto es lo nuevo que deben usar en el frontend!! ---
+@app.post("/user-activities/", response_model=schemas.UserActivity, tags=["Actividades Personalizadas"])
+def create_user_activity_endpoint(
+    activity: schemas.UserActivityCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Crea una nueva actividad personalizada para el usuario autenticado.
+    """
+    return crud.create_user_activity(db=db, activity=activity, user_id=current_user.id)
+
+@app.get("/user-activities/", response_model=List[schemas.UserActivity], tags=["Actividades Personalizadas"])
+def read_user_activities_endpoint(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Obtiene la lista de actividades personalizadas creadas por el usuario autenticado.
+    """
+    activities = crud.get_user_activities(db=db, user_id=current_user.id, skip=skip, limit=limit)
+    return activities
+
+#---------- HASTA AQUI ------------
 
 @app.get("/actividades/recomendadas", response_model=List[schemas.Actividad], tags=["Actividades"])
 def get_actividades_recomendadas(

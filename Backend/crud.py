@@ -64,10 +64,18 @@ def create_actividad(db: Session, actividad: ActividadCreate):
     db.refresh(db_actividad)
     return db_actividad
 
-
 def get_actividades(db: Session, skip: int = 0, limit: int = 10):
     return db.query(Actividad).offset(skip).limit(limit).all()
 
+def create_user_activity(db: Session, activity: schemas.UserActivityCreate, user_id: int):
+    db_activity = models.UserActivity(**activity.dict(), user_id=user_id)
+    db.add(db_activity)
+    db.commit()
+    db.refresh(db_activity)
+    return db_activity
+
+def get_user_activities(db: Session, user_id: int, skip: int = 0, limit: int = 100):
+    return db.query(models.UserActivity).filter(models.UserActivity.user_id == user_id).offset(skip).limit(limit).all()
 
 # FILTRADO DE ACTIVIDADES con los datos de la API, instrucciones para DB (Esto le servirá a Juan).
 def filtrar_actividades(db: Session, estado: str, temp: float):

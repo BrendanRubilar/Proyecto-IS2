@@ -29,6 +29,22 @@ class User(Base):
     is_active = Column(Boolean, default=True)
 
     preferences = relationship("UserPreference", back_populates="user")
+    user_activities = relationship("UserActivity", back_populates="owner") #Esto permite hacer la relación entre los usuarios y sus actividades :)
+
+# Esta es la tabla para las actividades de los usuarios, nuevo. :)
+class UserActivity(Base):
+    __tablename__ = "user_activities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String, index=True)
+    temperatura_min = Column(Float)
+    temperatura_max = Column(Float)
+    estado_dia = Column(String)
+    descripcion = Column(String)
+    consejos = Column(String)
+    user_id = Column(Integer, ForeignKey("users.id"))
+
+    owner = relationship("User", back_populates="user_activities")
 
 class ActivityType(Base):
     __tablename__ = "activity_types"

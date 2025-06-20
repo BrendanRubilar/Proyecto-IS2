@@ -46,7 +46,26 @@ class User(UserBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    
+# Esto es el modelo de las actividades de los usuarios, todo eso deberia pedirse en el frontend :)
+class UserActivityBase(BaseModel):
+    nombre: str
+    temperatura_min: float
+    temperatura_max: float
+    estado_dia: str
+    descripcion: str
+    consejos: str
+    
+class UserActivityCreate(UserActivityBase):
+    pass
 
+class UserActivity(UserActivityBase):
+    id: int
+    user_id: int
+
+    class Config:
+        from_attributes = True
+        
 # --- Nuevos Schemas para el pronóstico completo ---
 class AirQuality(BaseModel):
     value: Any # Puede ser número o "N/A"
