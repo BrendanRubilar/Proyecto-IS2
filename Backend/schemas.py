@@ -34,8 +34,7 @@ class UserBase(BaseModel):
     email: EmailStr
 
 class UserCreate(UserBase):
-    email: EmailStr
-    password: str = Field(min_length=6)#Minimo de 6 caracteres para la contraseña
+    password: str
 
 class User(UserBase):
     id: int
