@@ -1,59 +1,65 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Login.css';//Css para el front del login
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(''); 
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (token) navigate('/');
-  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const response = await fetch('http://localhost:8000/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ username, password }),
+      body: new URLSearchParams({ username, password }), 
     });
 
     if (response.ok) {
       const data = await response.json();
-      localStorage.setItem('accessToken', data.access_token);
-      localStorage.setItem('userEmail', username);
+      console.log('Inicio de sesión existoso!', data); 
+
+      localStorage.setItem('accessToken', data.access_token); 
+      localStorage.setItem('userEmail', username); // ← guarda el email del usuario
+      alert('Inicio de sesión existoso!'); 
       navigate('/');
     } else {
-      alert('Error al iniciar sesión');
+      try {
+        const errorData = await response.json();
+        console.error('Inicio de sesión fallido:', errorData.detail); 
+        alert(errorData.detail || 'Error, inténtalo nuevamente :)'); 
+      } catch (parseError) {
+        console.error('Failed to parse error response:', parseError);
+        alert('Error, inténtalo nuevamente :)');
+      }
     }
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        
-        <h2>Iniciar sesión</h2>
-        <p>Usa tu cuenta para acceder</p>
-        <form onSubmit={handleSubmit} className="form">
+    <div>
+      <h1>Login</h1>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Email: {/* Changed label */}
           <input
-            type="email"
-            placeholder="Correo electrónico"
-            value={username}
+            type="email" 
+            value={username} 
             onChange={(e) => setUsername(e.target.value)}
             required
           />
+        </label>
+        <br />
+        <label>
+          Password:
           <input
             type="password"
-            placeholder="Contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <button type="submit">Siguiente</button>
-        </form>
-      </div>
+        </label>
+        <br />
+        <button type="submit">Log In</button>
+      </form>
     </div>
   );
 };
