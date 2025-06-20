@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import Base, Actividad
+from models import Base, Actividad,ActividadLaboral
 
 # Establece la conexión con la base de datos
 DATABASE_URL = "sqlite:///./database.db"
@@ -84,6 +84,12 @@ actividades100x100 = [
     Actividad(nombre="Cocina en la casa", temperatura_min=-10.0, temperatura_max=50.0, estado_dia="Clouds",humedad_max = 100, viento_max = 100.5, descripcion="El cielo no esta bonito, quedate en casa a cocinar algo."),
     Actividad(nombre="Comer galletas y bebida caliente", temperatura_min=-10.0, temperatura_max=50.0, estado_dia="Snow",humedad_max = 100, viento_max = 100.5, descripcion="Come unas ricas galletas y toma algo calido para acompañar el frio."),
 ]
+actividades_laborales = [
+    ActividadLaboral(nombre="Jornada en oficina",temperatura_min=10.0,temperatura_max=30.0,estado_dia="Clear",humedad_max = 100, viento_max = 100.5,descripcion="Trabajo regular en las instalaciones de la empresa."),
+    ActividadLaboral(nombre="Teletrabajo",temperatura_min=5.0,temperatura_max=25.0,estado_dia="Rain",humedad_max = 100, viento_max = 100.5,descripcion="Trabajo desde casa usando herramientas digitales."),
+    ActividadLaboral(nombre="Actividades de team building en exteriores",temperatura_min=15.0,temperatura_max=28.0,estado_dia="Clear",humedad_max = 100, viento_max = 100.5,descripcion="Dinámicas de grupo al aire libre para fomentar el trabajo en equipo."),
+]
+
 
 
 # Inserta las actividades en la base de datos
@@ -95,7 +101,9 @@ for actividad in actividades2:
 
 for actividad in actividades100x100:
     db.add(actividad)
-
+# Actividades laborales (nueva tabla)
+for actividad in actividades_laborales:
+    db.add(actividad)
 # Confirma la transacción
 db.commit()
 
