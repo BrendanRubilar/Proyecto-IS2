@@ -24,6 +24,7 @@ const Login = () => {
       const data = await response.json();
       localStorage.setItem('accessToken', data.access_token);
       localStorage.setItem('userEmail', username);
+      localStorage.setItem('is_business', data.is_business);
       navigate('/');
     } else {
       alert('Error al iniciar sesión');

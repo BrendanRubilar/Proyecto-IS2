@@ -9,6 +9,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false); // Para mostrar/ocultar contraseña
   const [error, setError] = useState(''); // Para mensajes de error
+  const [is_business, setIsBusiness] = useState(false);
   const navigate = useNavigate();
 
   // Función que se ejecuta al enviar el formulario
@@ -39,8 +40,10 @@ const Register = () => {
       const response = await fetch('http://localhost:8000/register/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }), // Enviar datos como JSON
+        body: JSON.stringify({ email, password, is_business }), // Enviar datos como JSON
       });
+
+      console.log({ email, password, is_business });
 
       if (response.ok) {
         alert('Registro exitoso!');
@@ -134,6 +137,17 @@ const Register = () => {
             </button>
           </div>
 
+          <div className="checkbox-container">
+            <label>
+              <input
+              type="checkbox"
+              checked={is_business}
+              onChange={(e) => setIsBusiness(e.target.checked)}
+              />
+            <font color="black">Registrarse como usuario empresa</font>
+            </label>
+          </div>
+          
           {/* Botón para enviar formulario */}
           <button type="submit">Registrarse</button>
         </form>
