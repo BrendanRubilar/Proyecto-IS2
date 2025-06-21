@@ -20,19 +20,6 @@ class Actividad(Base):
     viento_max = Column(Float)
     estado_dia = Column(String)  # Por ejemplo: "rain", "snow", "cloud"
     descripcion = Column(String)
-    
-    #Tabla para actividades laborales
-class ActividadLaboral(Base):
-    __tablename__ = "actividades_laborales"
-
-    id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String, index=True)
-    temperatura_min = Column(Float)
-    temperatura_max = Column(Float)
-    humedad_max = Column(Integer)
-    viento_max = Column(Float)
-    estado_dia = Column(String)  # Por ejemplo: "rain", "snow", "cloud"
-    descripcion = Column(String)
 
 # La clase User representa a los usuarios en la base de datos
 class User(Base):
@@ -42,6 +29,7 @@ class User(Base):
     email = Column(String, unique=True, index=True) 
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
+    is_business = Column(Boolean, default=False)
 
     preferences = relationship("UserPreference", back_populates="user")
 

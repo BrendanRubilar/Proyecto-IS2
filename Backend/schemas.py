@@ -63,16 +63,19 @@ class PreferenciasCreate(BaseModel):
 class UserCreate(UserBase):
     email: EmailStr
     password: str = Field(min_length=6)#Minimo de 6 caracteres para la contraseña
+    is_business: bool
 
 class User(UserBase):
     id: int
     is_active: bool
+    is_business: bool
     class Config:
         from_attributes = True
 
 class Token(BaseModel):
     access_token: str
     token_type: str
+    is_business: bool
 
 # --- Nuevos Schemas para el pronóstico completo ---
 class AirQuality(BaseModel):
