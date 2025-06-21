@@ -16,7 +16,7 @@ Base.metadata.create_all(bind=engine)
 # Inserta las actividades
 actividades = [
     #Clear
-    Actividad(nombre="Caminata en el parque", temperatura_min=15.5, temperatura_max=28.0, estado_dia="Clear",humedad_max = 77, viento_max = 50.4, descripcion="Disfruta una caminata relajante en un parque cercano."),
+    Actividad(nombre="Caminata en el parque", temperatura_min=15.5, temperatura_max=28.0, estado_dia="Clear",humedad_max = 77, viento_max = 50.4, descripcion="Disfruta una caminata relajante en un parque cercano.🚶‍♀️"),
     Actividad(nombre="Ciclismo de montaña", temperatura_min=10.0, temperatura_max=22.0, estado_dia="Clear",humedad_max = 89, viento_max = 50.6, descripcion="Recorre senderos en la montaña disfrutando de la naturaleza."),
     Actividad(nombre="Nadar en la piscina", temperatura_min=18.0, temperatura_max=30.0, estado_dia="Clear",humedad_max = 78, viento_max = 50.6, descripcion="Refrescate en una piscina al aire libre."),
     Actividad(nombre="Día de picnic", temperatura_min=20.0, temperatura_max=25.0, estado_dia="Clear",humedad_max = 69, viento_max = 50.8, descripcion="Disfruta de un día al aire libre con amigos o familia."),

@@ -20,8 +20,9 @@ class Actividad(Base):
     viento_max = Column(Float)
     estado_dia = Column(String)  # Por ejemplo: "rain", "snow", "cloud"
     descripcion = Column(String)
+    favorited_by = relationship("Favorito", back_populates="actividad")
     
-    #Tabla para actividades laborales
+#Tabla para actividades laborales
 class ActividadLaboral(Base):
     __tablename__ = "actividades_laborales"
 
@@ -44,6 +45,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
 
     preferences = relationship("UserPreference", back_populates="user")
+    favoritos = relationship("Favorito", back_populates="user")#relacion con tabla de favorito 
 
 class ActivityType(Base):
     __tablename__ = "activity_types"
@@ -80,3 +82,13 @@ class ActivityPreference(Base):
     actividad = relationship("Actividad", backref="preferences")
     activity_type = relationship("ActivityType")
     modality = relationship("Modality")
+    
+#Tabla de favoritos
+class Favorito(Base):
+    __tablename__ = "favoritos"
+
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    actividad_id = Column(Integer, ForeignKey("actividades.id"), primary_key=True)
+
+    user = relationship("User", back_populates="favoritos")
+    actividad = relationship("Actividad", back_populates="favorited_by")
