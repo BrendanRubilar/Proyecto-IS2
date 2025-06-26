@@ -45,7 +45,11 @@ class User(Base):
     is_active = Column(Boolean, default=True)
 
     preferences = relationship("UserPreference", back_populates="user")
+    #Esta linea rompe el codigo
     user_activities = relationship("UserActivity", back_populates="owner") #Esto permite hacer la relación entre los usuarios y sus actividades :)
+    #Esto lo arregla, no se si es correcto
+    favoritos = relationship("Favorito", back_populates="user")
+
 
 # Esta es la tabla para las actividades de los usuarios, nuevo. :)
 class UserActivity(Base):
@@ -60,7 +64,7 @@ class UserActivity(Base):
     consejos = Column(String)
     user_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="user_activities")
-    favoritos = relationship("Favorito", back_populates="user")#relacion con tabla de favorito 
+    #favoritos = relationship("Favorito", back_populates="user")#relacion con tabla de favorito 
 
 
 class ActivityType(Base):
@@ -97,7 +101,6 @@ class ActivityPreference(Base):
 
     actividad = relationship("Actividad", backref="preferences")
     activity_type = relationship("ActivityType")
-    modality = relationship("Modality")
     modality = relationship("Modality")
     
 #Tabla de favoritos

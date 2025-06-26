@@ -125,6 +125,23 @@ def filtrar_actividades(db: Session, estado: str, temp: float, hum: int, viento:
         .all()
     )
 
+#crud
+def actividades_no_recomendadas(db: Session, estado: str, temp: float, hum: int, viento: float):
+    return (
+        db.query(Actividad)
+        .filter(
+            (Actividad.estado_dia != estado) |
+            (Actividad.temperatura_min > temp) |
+            (Actividad.temperatura_max < temp) |
+            (Actividad.humedad_max < hum) |
+            (Actividad.viento_max < viento)
+        )
+        .all()
+    )
+
+
+
+
 
 def get_actividades_por_clima_y_preferencias(
     db: Session,

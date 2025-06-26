@@ -46,11 +46,10 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"], # Permite todos los métodos (GET, POST, etc.)
-    #allow_headers=["*"], # Permite todos los encabezados
-    allow_headers=["*", "Authorization"],
+    allow_origins=["*"],  # Permite todos los orígenes
+    allow_credentials=False,  # Obligatorio si se usa "*"
+    allow_methods=["*"],      # Permite todos los métodos (GET, POST, etc.)
+    allow_headers=["*"],      # Permite todos los encabezados
 )
 
 
@@ -128,8 +127,17 @@ def filtrar_actividades_endpoint(
     estado = estado.capitalize()
     return crud.filtrar_actividades(db=db, estado=estado, temp=temp, hum=hum, viento=viento)
 
-
-
+#main
+@app.get("/actividades/empresa/filtrar", response_model=list[schemas.Actividad], tags=["Actividades"])
+def filtrar_actividades_empresa(
+    estado: str,
+    temp: float,
+    hum: int,
+    viento: float,
+    db: Session = Depends(get_db)
+):
+    estado = estado.capitalize()
+    return crud.actividades_no_recomendadas(db=db, estado=estado, temp=temp, hum=hum, viento=viento)
 
 
 
