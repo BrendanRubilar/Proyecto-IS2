@@ -59,16 +59,39 @@ const Preferences = () => {
     consejos: '',
   });
 
-  // 2. Estado para la lista de actividades, cargando desde localStorage.
-  const [customActivities, setCustomActivities] = useState(() => {
-    const savedCustom = localStorage.getItem('userCustomActivities');
-    return savedCustom ? JSON.parse(savedCustom) : [];
-  });
+  // 2. Estado para la lista de actividades, cargando desde el backend.
+  const [customActivities, setCustomActivities] = useState([]);
+  const [isLoadingActivities, setIsLoadingActivities] = useState(false);
 
-  // 3. Guardar en localStorage cada vez que la lista cambie.
+  // 3. Función para cargar actividades desde el backend
+  const fetchUserActivities = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+    
+    setIsLoadingActivities(true);
+    try {
+      const response = await fetch('http://localhost:8000/user-activities/', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCustomActivities(data);
+      } else {
+        console.error('Error al cargar actividades personalizadas');
+      }
+    } catch (error) {
+      console.error('Error al cargar actividades:', error);
+    } finally {
+      setIsLoadingActivities(false);
+    }
+  };
+
+  // 4. Cargar actividades cuando se accede a la sección de personalizadas
   useEffect(() => {
-    localStorage.setItem('userCustomActivities', JSON.stringify(customActivities));
-  }, [customActivities]);
+    if (activeSection === 'personalizadas') {
+      fetchUserActivities();
+    }
+  }, [activeSection]);
 
   // 4. Handler genérico para actualizar el estado del formulario.
   const handleInputChange = (e) => {
@@ -183,40 +206,78 @@ const Preferences = () => {
   const isFavorite = (activityId) => favoritos.includes(activityId);
 
   
-  // 5. Lógica para añadir y quitar actividades (LOCALMENTE)
-  const handleAddCustomActivity = (e) => {
+  // 5. Lógica para añadir y quitar actividades usando el backend
+  const handleAddCustomActivity = async (e) => {
     e.preventDefault();
     if (!newActivity.nombre.trim()) {
       alert("El nombre de la actividad no puede estar vacío.");
       return;
     }
-     if (newActivity.temperatura_min > newActivity.temperatura_max) {
+    if (newActivity.temperatura_min > newActivity.temperatura_max) {
       alert("La temperatura mínima no puede ser mayor que la máxima.");
       return;
     }
 
-    // TODO: Cambiar al backend.
-    
-    const activityToSave = {
-      ...newActivity,
-      id: Date.now(), // ID temporal para el frontend
-    };
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("No autorizado. Por favor inicia sesión.");
+      return;
+    }
 
-    setCustomActivities(prev => [...prev, activityToSave]);
-    
-    // Resetear formulario a valores por defecto
-    setNewActivity({
-      nombre: '', descripcion: '', temperatura_min: 15, temperatura_max: 25,
-      humedad_max: 80, viento_max: 50, estado_dia: 'Clear', consejos: '',
-    });
-    alert("Actividad personalizada añadida localmente.");
+    try {
+      const response = await fetch('http://localhost:8000/user-activities/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newActivity)
+      });
+
+      if (response.ok) {
+        const newActivityFromServer = await response.json();
+        setCustomActivities(prev => [...prev, newActivityFromServer]);
+        
+        // Resetear formulario a valores por defecto
+        setNewActivity({
+          nombre: '', descripcion: '', temperatura_min: 15, temperatura_max: 25,
+          humedad_max: 80, viento_max: 50, estado_dia: 'Clear', consejos: '',
+        });
+        alert("Actividad personalizada creada exitosamente.");
+      } else {
+        const errorData = await response.json();
+        alert(`Error al crear la actividad: ${errorData.detail || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error('Error al crear actividad:', error);
+      alert("Error de conexión al crear la actividad.");
+    }
   };
 
-  const handleRemoveCustomActivity = (activityId) => {
-    // TODO: Cambiar al backend.
+  const handleRemoveCustomActivity = async (activityId) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("No autorizado. Por favor inicia sesión.");
+      return;
+    }
 
-    setCustomActivities(prev => prev.filter(activity => activity.id !== activityId));
-    alert("Actividad eliminada localmente.");
+    try {
+      const response = await fetch(`http://localhost:8000/user-activities/${activityId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        setCustomActivities(prev => prev.filter(activity => activity.id !== activityId));
+        alert("Actividad eliminada exitosamente.");
+      } else {
+        const errorData = await response.json();
+        alert(`Error al eliminar la actividad: ${errorData.detail || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error('Error al eliminar actividad:', error);
+      alert("Error de conexión al eliminar la actividad.");
+    }
   };
 
   return (
@@ -369,7 +430,9 @@ const Preferences = () => {
             </form>
 
             <h3 className={styles.subSectionTitle}>Lista de Actividades Creadas:</h3>
-            {customActivities.length === 0 ? (
+            {isLoadingActivities ? (
+              <p>Cargando actividades...</p>
+            ) : customActivities.length === 0 ? (
               <p>Aún no has añadido ninguna actividad personalizada.</p>
             ) : (
               <ul className={styles.customActivityList}>
@@ -381,6 +444,11 @@ const Preferences = () => {
                       <p className={styles.customActivityDetails}>
                         Ideal en días <strong>{CLIMA_TRADUCCIONES[activity.estado_dia] || activity.estado_dia}</strong> / Temp: <strong>{activity.temperatura_min}°-{activity.temperatura_max}°C</strong> / Hum: <strong>≤{activity.humedad_max}%</strong> / Viento: <strong>≤{activity.viento_max}km/h</strong>
                       </p>
+                      {activity.consejos && (
+                        <p className={styles.customActivityTips}>
+                          <em>Consejos: {activity.consejos}</em>
+                        </p>
+                      )}
                     </div>
                     <button 
                       onClick={() => handleRemoveCustomActivity(activity.id)}

@@ -75,12 +75,14 @@ class Token(BaseModel):
     
 # Esto es el modelo de las actividades de los usuarios, todo eso deberia pedirse en el frontend :)
 class UserActivityBase(BaseModel):
-    nombre: str
-    temperatura_min: float
-    temperatura_max: float
-    estado_dia: str
-    descripcion: str
-    consejos: str
+    nombre: str  # Obligatorio
+    descripcion: str  # Obligatorio
+    temperatura_min: Optional[float] = None
+    temperatura_max: Optional[float] = None
+    humedad_max: Optional[float] = None
+    viento_max: Optional[float] = None
+    estado_dia: Optional[str] = None
+    consejos: Optional[str] = None
     
 class UserActivityCreate(UserActivityBase):
     pass
@@ -89,6 +91,22 @@ class UserActivity(UserActivityBase):
     id: int
     user_id: int
 
+    class Config:
+        from_attributes = True
+
+# Modelo unificado para recomendaciones que incluye tanto actividades del sistema como personalizadas
+class ActividadRecomendada(BaseModel):
+    id: int
+    nombre: str  # Obligatorio
+    descripcion: str  # Obligatorio
+    temperatura_min: Optional[float] = None
+    temperatura_max: Optional[float] = None
+    humedad_max: Optional[float] = None
+    viento_max: Optional[float] = None
+    estado_dia: Optional[str] = None
+    consejos: Optional[str] = None  # Solo las actividades personalizadas tienen consejos
+    es_personalizada: bool = False  # Para distinguir el tipo
+    
     class Config:
         from_attributes = True
         

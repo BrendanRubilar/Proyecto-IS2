@@ -77,6 +77,57 @@ def create_user_activity(db: Session, activity: schemas.UserActivityCreate, user
 def get_user_activities(db: Session, user_id: int, skip: int = 0, limit: int = 100):
     return db.query(models.UserActivity).filter(models.UserActivity.user_id == user_id).offset(skip).limit(limit).all()
 
+def get_user_activities_by_weather(db: Session, user_id: int, temperatura: float, estado: str, hum: int, viento: float):
+    """
+    Filtra las actividades personalizadas del usuario según las condiciones climáticas actuales.
+    Si algún campo climático de la actividad es None, se considera que la actividad es válida para cualquier condición de ese tipo.
+    """
+    from sqlalchemy import or_
+    
+    print(f"CRUD: Buscando actividades para user_id={user_id} con temperatura={temperatura}, estado={estado}, hum={hum}, viento={viento}")
+    
+    # Primero obtener todas las actividades del usuario para debugging
+    all_activities = db.query(models.UserActivity).filter(models.UserActivity.user_id == user_id).all()
+    print(f"CRUD: Total actividades del usuario: {len(all_activities)}")
+    
+    # Aplicar filtros uno por uno para debugging
+    filtered_activities = (
+        db.query(models.UserActivity)
+        .filter(
+            models.UserActivity.user_id == user_id,
+            # Si estado_dia es None, la actividad es válida para cualquier estado
+            or_(models.UserActivity.estado_dia.is_(None), models.UserActivity.estado_dia == estado),
+            # Si temperatura_min es None, no hay límite mínimo
+            or_(models.UserActivity.temperatura_min.is_(None), models.UserActivity.temperatura_min <= temperatura),
+            # Si temperatura_max es None, no hay límite máximo
+            or_(models.UserActivity.temperatura_max.is_(None), models.UserActivity.temperatura_max >= temperatura),
+            # Si humedad_max es None, no hay límite de humedad
+            or_(models.UserActivity.humedad_max.is_(None), models.UserActivity.humedad_max >= hum),
+            # Si viento_max es None, no hay límite de viento
+            or_(models.UserActivity.viento_max.is_(None), models.UserActivity.viento_max >= viento)
+        )
+        .all()
+    )
+    
+    print(f"CRUD: Actividades que pasan el filtro: {len(filtered_activities)}")
+    return filtered_activities
+
+def delete_user_activity(db: Session, activity_id: int, user_id: int) -> bool:
+    """
+    Elimina una actividad personalizada si pertenece al usuario.
+    
+    Retorna True si se eliminó, False si no se encontró o no pertenece al usuario.
+    """
+    activity = db.query(models.UserActivity).filter_by(id=activity_id, user_id=user_id).first()
+
+    if not activity:
+        return False  # No existe o no pertenece al usuario
+
+    db.delete(activity)
+    db.commit()
+    return True
+
+
 
 def get_preferencias(db: Session, usr: User):
     return db.query(models.UserPreference).filter(models.UserPreference.user_id == usr.id).all()
@@ -166,4 +217,23 @@ def get_actividades_por_clima_y_preferencias(
         )
         .all()
     )
-
+def get_actividades_por_clima_user_activities(
+    db: Session,
+    temperatura: float,
+    estado: str,
+    hum: int,
+    viento: float,
+    user_id: int
+) -> List[models.UserActivity]:
+    return (
+        db.query(models.UserActivity)
+        .filter(
+            models.UserActivity.user_id == user_id,
+            models.UserActivity.temperatura_min <= temperatura,
+            models.UserActivity.temperatura_max >= temperatura,
+            models.UserActivity.estado_dia == estado,
+            models.UserActivity.humedad_max >= hum,
+            models.UserActivity.viento_max >= viento
+        )
+        .all()
+    )

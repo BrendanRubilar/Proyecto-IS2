@@ -445,9 +445,25 @@ def read_user_activities_endpoint(
     activities = crud.get_user_activities(db=db, user_id=current_user.id, skip=skip, limit=limit)
     return activities
 
+@app.delete("/user-activities/{activity_id}", tags=["Actividades Personalizadas"])
+def delete_user_activity_endpoint(
+    activity_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    Elimina una actividad personalizada del usuario autenticado.
+    """
+    success = crud.delete_user_activity(db=db, activity_id=activity_id, user_id=current_user.id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Actividad no encontrada o no pertenece al usuario")
+    return {"message": "Actividad eliminada exitosamente"}
+
 #---------- HASTA AQUI ------------
 
-@app.get("/actividades/recomendadas", response_model=List[schemas.Actividad], tags=["Actividades"])
+
+#incluir actividades personalizadas (user-activities) en las recomendaciones
+@app.get("/actividades/recomendadas", response_model=List[schemas.ActividadRecomendada], tags=["Actividades"])
 def get_actividades_recomendadas(
     temperatura: float,
     estado: str,
@@ -476,35 +492,102 @@ def get_actividades_recomendadas(
     if user is None:
         raise credentials_exception
 
+    # Obtener preferencias del usuario
     preferencias = db.query(models.UserPreference).filter_by(user_id=user.id).all()
-    if not preferencias:
-        raise HTTPException(status_code=404, detail="El usuario no tiene preferencias registradas")
+    
+    print(f"Usuario ID: {user.id}")
+    print(f"Parámetros de clima recibidos: temperatura={temperatura}, estado={estado}, humedad={hum}, viento={viento}")
+    
+    # Primero, obtener TODAS las actividades personalizadas del usuario (sin filtro de clima)
+    todas_actividades_usuario = crud.get_user_activities(db=db, user_id=user.id)
+    print(f"Total de actividades personalizadas del usuario: {len(todas_actividades_usuario)}")
+    for act in todas_actividades_usuario:
+        print(f"  - {act.nombre}: temp_min={act.temperatura_min}, temp_max={act.temperatura_max}, estado={act.estado_dia}, hum_max={act.humedad_max}, viento_max={act.viento_max}")
+    
+    # Obtener actividades personalizadas del usuario que coincidan con el clima
+    actividades_personalizadas = crud.get_user_activities_by_weather(
+        db=db, 
+        user_id=user.id, 
+        temperatura=temperatura, 
+        estado=estado, 
+        hum=hum, 
+        viento=viento
+    )
+    
+    print(f"Actividades personalizadas que coinciden con el clima: {len(actividades_personalizadas)}")
+    for act in actividades_personalizadas:
+        print(f"  - {act.nombre}: cumple condiciones climáticas")
+    
+    # Verificar si el usuario tiene preferencias o actividades personalizadas
+    if not preferencias and not actividades_personalizadas:
+        raise HTTPException(
+            status_code=404, 
+            detail="El usuario no tiene preferencias registradas ni actividades personalizadas que coincidan con el clima actual"
+        )
     
     
     # print(f"Preferencias del usuario {user.username} (id={user.id}):")
     # for p in preferencias:
     #     print(f" - activity_type_id={p.activity_type_id}, modality_id={p.modality_id}")
 
-    activity_type_ids = [p.activity_type_id for p in preferencias]
-    modality_ids = [p.modality_id for p in preferencias]
+    # Obtener actividades del sistema basadas en preferencias (si las tiene)
+    actividades_sistema = []
+    if preferencias:
+        activity_type_ids = [p.activity_type_id for p in preferencias]
+        modality_ids = [p.modality_id for p in preferencias]
 
+        print(f"Filtrando actividades del sistema con:")
+        print(f" - temperatura={temperatura}")
+        print(f" - estado_dia={estado}")
+        print(f" - activity_type_ids={activity_type_ids}")
+        print(f" - modality_ids={modality_ids}")
 
-    print(f"Filtrando actividades con:")
-    print(f" - temperatura={temperatura}")
-    print(f" - estado_dia={estado}")
-    print(f" - activity_type_ids={activity_type_ids}")
-    print(f" - modality_ids={modality_ids}")
+        actividades_sistema = crud.get_actividades_por_clima_y_preferencias(
+            db=db,
+            temperatura=temperatura,
+            estado=estado,
+            hum=hum, 
+            viento=viento,
+            activity_type_ids=activity_type_ids,
+            modality_ids=modality_ids
+        )
 
-    actividades_filtradas = crud.get_actividades_por_clima_y_preferencias(
-        db=db,
-        temperatura=temperatura,
-        estado=estado,
-        hum=hum, 
-        viento=viento,
-        activity_type_ids=activity_type_ids,
-        modality_ids=modality_ids
-    )
-    return actividades_filtradas
+    print(f"Actividades del sistema encontradas: {len(actividades_sistema)}")
+    print(f"Actividades personalizadas encontradas: {len(actividades_personalizadas)}")
+
+    # Convertir actividades del sistema al formato unificado
+    actividades_recomendadas = []
+    
+    for actividad in actividades_sistema:
+        actividades_recomendadas.append(schemas.ActividadRecomendada(
+            id=actividad.id,
+            nombre=actividad.nombre,
+            descripcion=actividad.descripcion,
+            temperatura_min=getattr(actividad, 'temperatura_min', None),
+            temperatura_max=getattr(actividad, 'temperatura_max', None),
+            humedad_max=getattr(actividad, 'humedad_max', None),
+            viento_max=getattr(actividad, 'viento_max', None),
+            estado_dia=getattr(actividad, 'estado_dia', None),
+            consejos=None,
+            es_personalizada=False
+        ))
+    
+    # Convertir actividades personalizadas al formato unificado
+    for actividad in actividades_personalizadas:
+        actividades_recomendadas.append(schemas.ActividadRecomendada(
+            id=actividad.id,
+            nombre=actividad.nombre,
+            descripcion=actividad.descripcion,
+            temperatura_min=actividad.temperatura_min,
+            temperatura_max=actividad.temperatura_max,
+            humedad_max=actividad.humedad_max,
+            viento_max=actividad.viento_max,
+            estado_dia=actividad.estado_dia,
+            consejos=actividad.consejos,
+            es_personalizada=True
+        ))
+    
+    return actividades_recomendadas
 
 # Para ejecutar con `python main.py
 if __name__ == "__main__":

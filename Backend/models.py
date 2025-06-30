@@ -56,12 +56,14 @@ class UserActivity(Base):
     __tablename__ = "user_activities"
 
     id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String, index=True)
-    temperatura_min = Column(Float)
-    temperatura_max = Column(Float)
-    estado_dia = Column(String)
-    descripcion = Column(String)
-    consejos = Column(String)
+    nombre = Column(String, index=True, nullable=False)  # Obligatorio
+    descripcion = Column(String, nullable=False)  # Obligatorio
+    temperatura_min = Column(Float, nullable=True)
+    temperatura_max = Column(Float, nullable=True)
+    humedad_max = Column(Float, nullable=True)
+    viento_max = Column(Float, nullable=True)
+    estado_dia = Column(String, nullable=True)
+    consejos = Column(String, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="user_activities")
     #favoritos = relationship("Favorito", back_populates="user")#relacion con tabla de favorito 
