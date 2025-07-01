@@ -139,14 +139,6 @@ def filtrar_actividades_empresa(
     estado = estado.capitalize()
     return crud.actividades_no_recomendadas(db=db, estado=estado, temp=temp, hum=hum, viento=viento)
 
-
-
-
-
-
-
-
-
 @app.get("/preferencias/", response_model=List[schemas.Preferencias], tags=["Preferencias"])
 def read_preferencias(
     token: str = Depends(oauth2_scheme),
@@ -469,28 +461,11 @@ def get_actividades_recomendadas(
     estado: str,
     hum: int,
     viento: float,
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user) # <-- CAMBIO CLAVE AQUÍ
 ):
     estado = estado.capitalize()
-    # --- Autenticación ---
-    credentials_exception = HTTPException(
-        status_code=401,
-        detail="No se pudieron validar las credenciales",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub") 
-        if email is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-
-    user = crud.get_user_by_email(db, email=email) # Changed to use email
-    if user is None:
-        raise credentials_exception
+    user = current_user # Ya tenemos el usuario validado desde la dependencia
 
     # Obtener preferencias del usuario
     preferencias = db.query(models.UserPreference).filter_by(user_id=user.id).all()
@@ -589,10 +564,47 @@ def get_actividades_recomendadas(
     
     return actividades_recomendadas
 
+# --- Endpoints para Proyectos de Empresa ---
+async def get_current_business_user(current_user: models.User = Depends(get_current_user)):
+    if not current_user.is_business:
+        raise HTTPException(status_code=403, detail="Acceso denegado: se requiere una cuenta de empresa.")
+    return current_user
+
+@app.post("/projects/", response_model=schemas.Project, tags=["Proyectos (Empresa)"])
+def create_project_endpoint(
+    project: schemas.ProjectCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_business_user)
+):
+    """Crea un nuevo proyecto para el usuario de empresa autenticado."""
+    return crud.create_project(db=db, project=project, user_id=current_user.id)
+
+@app.get("/projects/", response_model=List[schemas.Project], tags=["Proyectos (Empresa)"])
+def read_projects_endpoint(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_business_user)
+):
+    """Obtiene todos los proyectos del usuario de empresa autenticado."""
+    return crud.get_projects_by_user(db=db, user_id=current_user.id)
+
+@app.post("/projects/{project_id}/activities/", response_model=schemas.ActividadLaboral, tags=["Proyectos (Empresa)"])
+def create_project_activity_endpoint(
+    project_id: int,
+    activity: schemas.ActividadLaboralCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_business_user)
+):
+    """Crea una actividad laboral dentro de un proyecto específico."""
+    db_project = crud.get_project_by_id(db, project_id=project_id, user_id=current_user.id)
+    if db_project is None:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado o no pertenece al usuario.")
+    return crud.create_project_activity(db=db, activity=activity, project_id=project_id)
+
+
 # Para ejecutar con `python main.py
 if __name__ == "__main__":
     import uvicorn
     print(f"Iniciando servidor Uvicorn en http://localhost:8000")
     print(f"API Key de clima cargada: {'Sí' if API_KEY else 'No (¡CONFIGURAR .env!)'}")
     print(f"Documentación de la API disponible en http://localhost:8000/docs")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) # reload=True para desarroll
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) # reload=True para desarrollo

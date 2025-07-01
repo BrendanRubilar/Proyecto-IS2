@@ -127,8 +127,6 @@ def delete_user_activity(db: Session, activity_id: int, user_id: int) -> bool:
     db.commit()
     return True
 
-
-
 def get_preferencias(db: Session, usr: User):
     return db.query(models.UserPreference).filter(models.UserPreference.user_id == usr.id).all()
 def create_preferencias(db: Session, pref_list: list[schemas.PreferenciasCreate], usr: User):
@@ -154,13 +152,6 @@ def create_preferencias(db: Session, pref_list: list[schemas.PreferenciasCreate]
         db.refresh(pref)
 
     return nuevas_prefs
-
-
-
-
-
-
-
 
 # FILTRADO DE ACTIVIDADES con los datos de la API, instrucciones para DB (Esto le servirá a Juan).
 def filtrar_actividades(db: Session, estado: str, temp: float, hum: int, viento: float):
@@ -189,10 +180,6 @@ def actividades_no_recomendadas(db: Session, estado: str, temp: float, hum: int,
         )
         .all()
     )
-
-
-
-
 
 def get_actividades_por_clima_y_preferencias(
     db: Session,
@@ -237,3 +224,25 @@ def get_actividades_por_clima_user_activities(
         )
         .all()
     )
+    
+# --- CRUD para Proyectos de Empresa ---
+def create_project(db: Session, project: schemas.ProjectCreate, user_id: int):
+    db_project = models.Project(**project.dict(), user_id=user_id)
+    db.add(db_project)
+    db.commit()
+    db.refresh(db_project)
+    return db_project
+
+def get_projects_by_user(db: Session, user_id: int):
+    return db.query(models.Project).filter(models.Project.user_id == user_id).all()
+
+def get_project_by_id(db: Session, project_id: int, user_id: int):
+    return db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
+
+# --- CRUD para Actividades Laborales dentro de Proyectos ---
+def create_project_activity(db: Session, activity: schemas.ActividadLaboralCreate, project_id: int):
+    db_activity = models.ActividadLaboral(**activity.dict(), project_id=project_id)
+    db.add(db_activity)
+    db.commit()
+    db.refresh(db_activity)
+    return db_activity

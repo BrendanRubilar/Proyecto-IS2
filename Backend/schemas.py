@@ -156,3 +156,35 @@ class FullWeatherReport(BaseModel):
     hourly: List[HourlyForecastItem]
     daily: List[DailyForecastItem]
 
+# --- Schemas para Actividades Laborales (dentro de un Proyecto) ---
+class ActividadLaboralBase(BaseModel):
+    nombre: str
+    temperatura_min: float
+    temperatura_max: float
+    estado_dia: str
+    descripcion: str
+
+class ActividadLaboralCreate(ActividadLaboralBase):
+    pass
+
+class ActividadLaboral(ActividadLaboralBase):
+    id: int
+    project_id: int
+    class Config:
+        from_attributes = True
+
+# --- Schemas para Proyectos de Empresa ---
+class ProjectBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+class ProjectCreate(ProjectBase):
+    pass
+
+class Project(ProjectBase):
+    id: int
+    user_id: int
+    labor_activities: List[ActividadLaboral] = []
+    class Config:
+        from_attributes = True
+

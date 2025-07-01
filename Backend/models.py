@@ -22,6 +22,19 @@ class Actividad(Base):
     descripcion = Column(String)
     favorited_by = relationship("Favorito", back_populates="actividad")
     
+    
+# Tabla para Proyectos de Empresas ''''''''''''''' Esto es nuevo, es la "carpeta" Proyecto
+class Project(Base):
+    __tablename__ = "projects"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    description = Column(String, nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+
+    owner = relationship("User", back_populates="projects")
+    labor_activities = relationship("ActividadLaboral", back_populates="project", cascade="all, delete-orphan")
+
 #Tabla para actividades laborales
 class ActividadLaboral(Base):
     __tablename__ = "actividades_laborales"
@@ -34,6 +47,10 @@ class ActividadLaboral(Base):
     viento_max = Column(Float)
     estado_dia = Column(String)  # Por ejemplo: "rain", "snow", "cloud"
     descripcion = Column(String)
+    
+    project_id = Column(Integer, ForeignKey("projects.id"))
+    project = relationship("Project", back_populates="labor_activities") #Relación con proyecto
+
 
 # La clase User representa a los usuarios en la base de datos
 class User(Base):
@@ -50,6 +67,9 @@ class User(Base):
     user_activities = relationship("UserActivity", back_populates="owner") #Esto permite hacer la relación entre los usuarios y sus actividades :)
     #Esto lo arregla, no se si es correcto
     favoritos = relationship("Favorito", back_populates="user")
+    
+    projects = relationship("Project", back_populates="owner")
+
 
 
 # Esta es la tabla para las actividades de los usuarios, nuevo. :)
@@ -115,3 +135,4 @@ class Favorito(Base):
 
     user = relationship("User", back_populates="favoritos")
     actividad = relationship("Actividad", back_populates="favorited_by")
+
