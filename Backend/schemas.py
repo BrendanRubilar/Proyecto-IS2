@@ -47,11 +47,6 @@ class Preferencias(BaseModel):
         populate_by_name = True
 
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
-
-
 class PreferenciasCreate(BaseModel):
     tipo: int = Field(..., alias="activity_type_id")
     modalidad: int = Field(..., alias="modality_id")
@@ -61,9 +56,8 @@ class PreferenciasCreate(BaseModel):
         from_attributes = True
 
 class UserCreate(UserBase):
-    email: EmailStr
-    password: str = Field(min_length=6)#Minimo de 6 caracteres para la contraseña
-    is_business: bool
+    password: str = Field(min_length=6)  # Mínimo de 6 caracteres para la contraseña
+    is_business: bool = False
 
 class User(UserBase):
     id: int
@@ -75,6 +69,7 @@ class User(UserBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    is_business: bool
     
 # Esto es el modelo de las actividades de los usuarios, todo eso deberia pedirse en el frontend :)
 class UserActivityBase(BaseModel):
@@ -89,7 +84,6 @@ class UserActivityBase(BaseModel):
     
 class UserActivityCreate(UserActivityBase):
     pass
-    is_business: bool
 
 class UserActivity(UserActivityBase):
     id: int

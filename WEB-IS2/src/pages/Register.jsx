@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import './Register.css';//Css para Register
 
 const Register = () => {
-  const [email, setEmail] = useState(''); 
+  // Estados para almacenar valores del formulario
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false); // Para mostrar/ocultar contraseña
@@ -11,6 +12,7 @@ const Register = () => {
   const [is_business, setIsBusiness] = useState(false);
   const navigate = useNavigate();
 
+  // Función que se ejecuta al enviar el formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(''); // Limpiar errores previos
@@ -75,14 +77,20 @@ const Register = () => {
   };
 
   return (
-    <div>
-      <h1>Register</h1>
-      <form onSubmit={handleSubmit}>
-        {error && <p style={{ color: 'red' }}>{error}</p>} 
-        <label>
-          Email: 
+    <div className="register-container">
+      <div className="register-card">
+        <h2>Registrarse</h2>
+        <p>Crea tu cuenta para continuar</p>
+
+        {/* Formulario de registro */}
+        <form onSubmit={handleSubmit} autoComplete="off" className="form">
+          {/* Mostrar mensaje de error si existe */}
+          {error && <p style={{ color: 'red' }}>{error}</p>}
+
+          {/* Input para email */}
           <input
             type="email"
+            placeholder="Correo electrónico"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
