@@ -59,24 +59,30 @@ const handleSelectCity = (cityData) => {
 const Header = ({ onUbicacionChange, onCityPresetSelect }) => {
   const [userEmail, setUserEmail] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [is_business, setIsBusiness] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     const email = localStorage.getItem('userEmail');
+    const business = localStorage.getItem('is_business');
+    console.log("this is localStorage" , localStorage);
 
     if (token && email) {
       setIsAuthenticated(true);
       setUserEmail(email);
+      setIsBusiness(JSON.parse(business));
     } else {
       setIsAuthenticated(false);
       setUserEmail('');
+      setIsBusiness(false);
     }
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userEmail');
+    localStorage.removeItem('is_business');
     
     window.location.href = '/'; // Recarga la página 
     alert('Sesión cerrada correctamente');
@@ -99,7 +105,11 @@ const Header = ({ onUbicacionChange, onCityPresetSelect }) => {
       <div className={styles.rightSection}>
         {isAuthenticated ? (
           <>
-            <span className={styles.userInfo}> Bienvenido, {userEmail.split('@')[0]}</span>
+            <span className={styles.userInfo}>
+              {is_business
+                ? `Bienvenido, empresa ${userEmail.split('@')[0]}`
+                : `Bienvenido, ${userEmail.split('@')[0]}`}
+            </span>
             <Link to="/preferences" className={styles.authLink}>Preferencias</Link>
             <button className={styles.logoutLink} onClick={handleLogout}>Cerrar sesión</button>
           </>

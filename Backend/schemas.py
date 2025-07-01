@@ -61,11 +61,14 @@ class PreferenciasCreate(BaseModel):
         from_attributes = True
 
 class UserCreate(UserBase):
-    password: str
+    email: EmailStr
+    password: str = Field(min_length=6)#Minimo de 6 caracteres para la contraseña
+    is_business: bool
 
 class User(UserBase):
     id: int
     is_active: bool
+    is_business: bool
     class Config:
         from_attributes = True
 
@@ -86,6 +89,7 @@ class UserActivityBase(BaseModel):
     
 class UserActivityCreate(UserActivityBase):
     pass
+    is_business: bool
 
 class UserActivity(UserActivityBase):
     id: int

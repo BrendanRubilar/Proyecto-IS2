@@ -15,11 +15,17 @@ const Login = () => {
 
     if (response.ok) {
       const data = await response.json();
+<<<<<<< HEAD
       console.log('Inicio de sesión existoso!', data); 
 
       localStorage.setItem('accessToken', data.access_token); 
       localStorage.setItem('userEmail', username); // ← guarda el email del usuario
       alert('Inicio de sesión existoso!'); 
+=======
+      localStorage.setItem('accessToken', data.access_token);
+      localStorage.setItem('userEmail', username);
+      localStorage.setItem('is_business', data.is_business);
+>>>>>>> ad
       navigate('/');
     } else {
       try {

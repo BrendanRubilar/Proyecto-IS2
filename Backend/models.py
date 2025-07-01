@@ -43,6 +43,7 @@ class User(Base):
     email = Column(String, unique=True, index=True) 
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
+    is_business = Column(Boolean, default=False)
 
     preferences = relationship("UserPreference", back_populates="user")
     #Esta linea rompe el codigo
