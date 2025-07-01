@@ -4,6 +4,7 @@ import styles from './App.module.css'; // Este será el principal para el layout
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Preferences from './pages/Preferences.jsx';
+import Proyectos from './pages/Proyectos';
 // Ya no necesitamos Ubicacion como página, está en el Header
 import Inicio from './pages/Inicio.jsx';
 
@@ -18,6 +19,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/preferences" element={<Preferences />} />
+          <Route path="/proyectos" element={<Proyectos />} />
           {/* Podrías añadir una ruta 404 aquí */}
         </Routes>
       </div>

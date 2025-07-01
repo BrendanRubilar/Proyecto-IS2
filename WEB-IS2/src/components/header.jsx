@@ -103,14 +103,21 @@ const Header = ({ onUbicacionChange, onCityPresetSelect }) => {
         </div>
       </div>
       <div className={styles.rightSection}>
-        {isAuthenticated ? (
+      {isAuthenticated ? (
           <>
             <span className={styles.userInfo}>
               {is_business
                 ? `Bienvenido, empresa ${userEmail.split('@')[0]}`
                 : `Bienvenido, ${userEmail.split('@')[0]}`}
             </span>
+
+            {is_business && (
+              <Link to="/proyectos" className={styles.authLink}>Mis Proyectos</Link>
+            )}
+            
+            {!is_business && (
             <Link to="/preferences" className={styles.authLink}>Preferencias</Link>
+            )}
             <button className={styles.logoutLink} onClick={handleLogout}>Cerrar sesión</button>
           </>
         ) : (
