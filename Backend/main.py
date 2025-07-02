@@ -570,7 +570,7 @@ async def get_current_business_user(current_user: models.User = Depends(get_curr
         raise HTTPException(status_code=403, detail="Acceso denegado: se requiere una cuenta de empresa.")
     return current_user
 
-@app.post("/projects/", response_model=schemas.Project, tags=["Proyectos (Empresa)"])
+@app.post("/projects/", response_model=schemas.Project, tags=["Proyectos (Empresa)"]) 
 def create_project_endpoint(
     project: schemas.ProjectCreate,
     db: Session = Depends(get_db),
@@ -579,7 +579,7 @@ def create_project_endpoint(
     """Crea un nuevo proyecto para el usuario de empresa autenticado."""
     return crud.create_project(db=db, project=project, user_id=current_user.id)
 
-@app.get("/projects/", response_model=List[schemas.Project], tags=["Proyectos (Empresa)"])
+@app.get("/projects/", response_model=List[schemas.Project], tags=["Proyectos (Empresa)"]) #Esto devuelve la lista de proyectos para mostrarlas
 def read_projects_endpoint(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_business_user)
@@ -587,7 +587,19 @@ def read_projects_endpoint(
     """Obtiene todos los proyectos del usuario de empresa autenticado."""
     return crud.get_projects_by_user(db=db, user_id=current_user.id)
 
-@app.post("/projects/{project_id}/activities/", response_model=schemas.ActividadLaboral, tags=["Proyectos (Empresa)"])
+@app.get("/projects/{project_id}", response_model=schemas.Project, tags=["Proyectos (Empresa)"]) #Esto retorna la info de un proyecto específico
+def read_single_project_endpoint(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_business_user)
+):
+    """Obtiene un proyecto específico por su ID, incluyendo sus actividades laborales."""
+    db_project = crud.get_project_by_id(db, project_id=project_id, user_id=current_user.id)
+    if db_project is None:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado o no pertenece al usuario.")
+    return db_project
+
+@app.post("/projects/{project_id}/activities/", response_model=schemas.ActividadLaboral, tags=["Proyectos (Empresa)"]) #Esto permite crear una actividad laboral en un proyecto
 def create_project_activity_endpoint(
     project_id: int,
     activity: schemas.ActividadLaboralCreate,
