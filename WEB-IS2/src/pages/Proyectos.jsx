@@ -155,8 +155,17 @@ function Proyectos() {
           ) : (
             <div className={`${styles.proyectosGrid} ${columnLayout === 4 ? styles.gridFourColumns : styles.gridTwoColumns} ${animationState !== 'idle' ? styles[animationState] : ''}`}>
               {proyectos.map(p => (
-                <div key={p.id} className={styles.proyectoCard}>
-                  <button className={styles.deleteButton} onClick={() => handleAbrirModal(p)} aria-label={`Eliminar el proyecto ${p.name}`}>×</button>
+               <div
+               key={p.id}
+               className={styles.proyectoCard}
+               onClick={() => navigate(`/proyectos/${p.id}/actividades`)}
+               role="button"
+               tabIndex={0}
+               onKeyDown={(e) => e.key === 'Enter' && navigate(`/proyectos/${p.id}/actividades`)}
+             >
+           
+             <button className={styles.deleteButton} onClick={(e) => {e.stopPropagation();handleAbrirModal(p);}}aria-label={`Eliminar el proyecto ${p.name}`}>×</button>
+
                   <h4>{p.name}</h4>
                   <p>{p.description}</p>
                 </div>
