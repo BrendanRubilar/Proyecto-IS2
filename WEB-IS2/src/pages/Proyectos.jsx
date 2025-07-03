@@ -2,21 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Proyectos.module.css';
 
-const LOCAL_STORAGE_KEY = 'misProyectos';
-
 function Proyectos() {
   const [isBusiness, setIsBusiness] = useState(false);
   const [userEmail, setUserEmail] = useState('');
 
-  const [proyectos, setProyectos] = useState(() => {
-    try {
-      const proyectosGuardados = localStorage.getItem(LOCAL_STORAGE_KEY);
-      return proyectosGuardados ? JSON.parse(proyectosGuardados) : [];
-    } catch (error) {
-      console.error("Error al leer proyectos de localStorage", error);
-      return [];
-    }
-  });
+  const [proyectos, setProyectos] = useState([]);
   
   const [nuevoTitulo, setNuevoTitulo] = useState('');
   const [nuevaDescripcion, setNuevaDescripcion] = useState('');
@@ -27,13 +17,29 @@ function Proyectos() {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
+  // Función para obtener proyectos desde el backend
+  const fetchProyectos = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(proyectos));
+      const response = await fetch('http://localhost:8000/projects/', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setProyectos(data);
+      } else if (response.status === 403) {
+        alert("Acceso denegado. Debes ser un usuario de empresa.");
+        navigate("/login");
+      } else {
+        console.error('Error al cargar proyectos:', response.status);
+      }
     } catch (error) {
-      console.error("Error al guardar proyectos en localStorage", error);
+      console.error('Error al cargar proyectos:', error);
     }
-  }, [proyectos]);
+  };
 
   useEffect(() => {
     const businessFlag = localStorage.getItem("is_business") === 'true';
@@ -47,7 +53,10 @@ function Proyectos() {
 
     setIsBusiness(true);
     setUserEmail(email);
-    setIsLoading(false); 
+    setIsLoading(false);
+    
+    // Cargar proyectos desde el backend
+    fetchProyectos();
     
   }, [navigate]);
 
@@ -63,20 +72,46 @@ function Proyectos() {
     }, 350);
   };
 
-  const handleCrearProyecto = (e) => {
+  const handleCrearProyecto = async (e) => {
     e.preventDefault();
     if (!nuevoTitulo.trim()) {
       alert("El título del proyecto es obligatorio.");
       return;
     }
-    const nuevoProyecto = {
-      id: Date.now(),
-      name: nuevoTitulo,
-      description: nuevaDescripcion
-    };
-    setProyectos(proyectosActuales => [nuevoProyecto, ...proyectosActuales]);
-    setNuevoTitulo('');
-    setNuevaDescripcion('');
+
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("No autorizado. Por favor inicia sesión.");
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:8000/projects/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: nuevoTitulo,
+          description: nuevaDescripcion || ""
+        })
+      });
+
+      if (response.ok) {
+        const nuevoProyecto = await response.json();
+        setProyectos(proyectosActuales => [nuevoProyecto, ...proyectosActuales]);
+        setNuevoTitulo('');
+        setNuevaDescripcion('');
+        alert("Proyecto creado exitosamente.");
+      } else {
+        const errorData = await response.json();
+        alert(`Error al crear el proyecto: ${errorData.detail || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error('Error al crear proyecto:', error);
+      alert("Error de conexión al crear el proyecto.");
+    }
   };
 
   const handleAbrirModal = (proyecto) => {
@@ -87,12 +122,34 @@ function Proyectos() {
     setProyectoAEliminar(null);
   };
 
-  const handleConfirmarEliminacion = () => {
-    if (proyectoAEliminar) {
-      setProyectos(proyectosActuales =>
-        proyectosActuales.filter(p => p.id !== proyectoAEliminar.id)
-      );
-      handleCerrarModal();
+  const handleConfirmarEliminacion = async () => {
+    if (!proyectoAEliminar) return;
+
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("No autorizado. Por favor inicia sesión.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/projects/${proyectoAEliminar.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        setProyectos(proyectosActuales =>
+          proyectosActuales.filter(p => p.id !== proyectoAEliminar.id)
+        );
+        handleCerrarModal();
+        alert("Proyecto eliminado exitosamente.");
+      } else {
+        const errorData = await response.json();
+        alert(`Error al eliminar el proyecto: ${errorData.detail || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error('Error al eliminar proyecto:', error);
+      alert("Error de conexión al eliminar el proyecto.");
     }
   };
   

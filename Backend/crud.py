@@ -42,7 +42,7 @@ def create_user(db: Session, user: UserCreate):
             "una mayúscula, un número y un carácter especial."
         )
     hashed_password = pwd_context.hash(user.password)
-    db_user = User(email=user.email, hashed_password=hashed_password, is_business=user.is_business)
+    db_user = User(email=user.email, hashed_password=hashed_password)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -78,39 +78,15 @@ def get_user_activities(db: Session, user_id: int, skip: int = 0, limit: int = 1
     return db.query(models.UserActivity).filter(models.UserActivity.user_id == user_id).offset(skip).limit(limit).all()
 
 def get_user_activities_by_weather(db: Session, user_id: int, temperatura: float, estado: str, hum: int, viento: float):
-    """
-    Filtra las actividades personalizadas del usuario según las condiciones climáticas actuales.
-    Si algún campo climático de la actividad es None, se considera que la actividad es válida para cualquier condición de ese tipo.
-    """
-    from sqlalchemy import or_
-    
-    print(f"CRUD: Buscando actividades para user_id={user_id} con temperatura={temperatura}, estado={estado}, hum={hum}, viento={viento}")
-    
-    # Primero obtener todas las actividades del usuario para debugging
-    all_activities = db.query(models.UserActivity).filter(models.UserActivity.user_id == user_id).all()
-    print(f"CRUD: Total actividades del usuario: {len(all_activities)}")
-    
-    # Aplicar filtros uno por uno para debugging
-    filtered_activities = (
-        db.query(models.UserActivity)
-        .filter(
-            models.UserActivity.user_id == user_id,
-            # Si estado_dia es None, la actividad es válida para cualquier estado
-            or_(models.UserActivity.estado_dia.is_(None), models.UserActivity.estado_dia == estado),
-            # Si temperatura_min es None, no hay límite mínimo
-            or_(models.UserActivity.temperatura_min.is_(None), models.UserActivity.temperatura_min <= temperatura),
-            # Si temperatura_max es None, no hay límite máximo
-            or_(models.UserActivity.temperatura_max.is_(None), models.UserActivity.temperatura_max >= temperatura),
-            # Si humedad_max es None, no hay límite de humedad
-            or_(models.UserActivity.humedad_max.is_(None), models.UserActivity.humedad_max >= hum),
-            # Si viento_max es None, no hay límite de viento
-            or_(models.UserActivity.viento_max.is_(None), models.UserActivity.viento_max >= viento)
-        )
-        .all()
-    )
-    
-    print(f"CRUD: Actividades que pasan el filtro: {len(filtered_activities)}")
-    return filtered_activities
+    """Obtiene actividades personalizadas del usuario que coinciden con las condiciones climáticas."""
+    return db.query(models.UserActivity).filter(
+        models.UserActivity.user_id == user_id,
+        models.UserActivity.temperatura_min <= temperatura,
+        models.UserActivity.temperatura_max >= temperatura,
+        models.UserActivity.estado_dia == estado,
+        models.UserActivity.humedad_max >= hum,
+        models.UserActivity.viento_max >= viento
+    ).all()
 
 def delete_user_activity(db: Session, activity_id: int, user_id: int) -> bool:
     """
@@ -126,6 +102,8 @@ def delete_user_activity(db: Session, activity_id: int, user_id: int) -> bool:
     db.delete(activity)
     db.commit()
     return True
+
+
 
 def get_preferencias(db: Session, usr: User):
     return db.query(models.UserPreference).filter(models.UserPreference.user_id == usr.id).all()
@@ -152,6 +130,13 @@ def create_preferencias(db: Session, pref_list: list[schemas.PreferenciasCreate]
         db.refresh(pref)
 
     return nuevas_prefs
+
+
+
+
+
+
+
 
 # FILTRADO DE ACTIVIDADES con los datos de la API, instrucciones para DB (Esto le servirá a Juan).
 def filtrar_actividades(db: Session, estado: str, temp: float, hum: int, viento: float):
@@ -181,6 +166,10 @@ def actividades_no_recomendadas(db: Session, estado: str, temp: float, hum: int,
         .all()
     )
 
+
+
+
+
 def get_actividades_por_clima_y_preferencias(
     db: Session,
     temperatura: float,
@@ -204,27 +193,8 @@ def get_actividades_por_clima_y_preferencias(
         )
         .all()
     )
-def get_actividades_por_clima_user_activities(
-    db: Session,
-    temperatura: float,
-    estado: str,
-    hum: int,
-    viento: float,
-    user_id: int
-) -> List[models.UserActivity]:
-    return (
-        db.query(models.UserActivity)
-        .filter(
-            models.UserActivity.user_id == user_id,
-            models.UserActivity.temperatura_min <= temperatura,
-            models.UserActivity.temperatura_max >= temperatura,
-            models.UserActivity.estado_dia == estado,
-            models.UserActivity.humedad_max >= hum,
-            models.UserActivity.viento_max >= viento
-        )
-        .all()
-    )
-    
+
+
 # --- CRUD para Proyectos de Empresa ---
 def create_project(db: Session, project: schemas.ProjectCreate, user_id: int):
     db_project = models.Project(**project.dict(), user_id=user_id)
@@ -239,6 +209,15 @@ def get_projects_by_user(db: Session, user_id: int):
 def get_project_by_id(db: Session, project_id: int, user_id: int):
     return db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
 
+def delete_project(db: Session, project_id: int, user_id: int):
+    """Elimina un proyecto y todas sus actividades laborales asociadas."""
+    db_project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
+    if db_project:
+        db.delete(db_project)
+        db.commit()
+        return True
+    return False
+
 # --- CRUD para Actividades Laborales dentro de Proyectos ---
 def create_project_activity(db: Session, activity: schemas.ActividadLaboralCreate, project_id: int):
     db_activity = models.ActividadLaboral(**activity.dict(), project_id=project_id)
@@ -246,3 +225,4 @@ def create_project_activity(db: Session, activity: schemas.ActividadLaboralCreat
     db.commit()
     db.refresh(db_activity)
     return db_activity
+

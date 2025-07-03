@@ -599,6 +599,18 @@ def read_single_project_endpoint(
         raise HTTPException(status_code=404, detail="Proyecto no encontrado o no pertenece al usuario.")
     return db_project
 
+@app.delete("/projects/{project_id}", tags=["Proyectos (Empresa)"])
+def delete_project_endpoint(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_business_user)
+):
+    """Elimina un proyecto específico y todas sus actividades laborales asociadas."""
+    success = crud.delete_project(db=db, project_id=project_id, user_id=current_user.id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado o no pertenece al usuario.")
+    return {"message": "Proyecto eliminado exitosamente"}
+
 @app.post("/projects/{project_id}/activities/", response_model=schemas.ActividadLaboral, tags=["Proyectos (Empresa)"]) #Esto permite crear una actividad laboral en un proyecto
 def create_project_activity_endpoint(
     project_id: int,
