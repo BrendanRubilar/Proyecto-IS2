@@ -7,6 +7,7 @@ import Preferences from './pages/Preferences.jsx';
 import Proyectos from './pages/Proyectos';
 // Ya no necesitamos Ubicacion como página, está en el Header
 import Inicio from './pages/Inicio.jsx';
+import ActividadesProyecto from './pages/ActividadesProyecto';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/preferences" element={<Preferences />} />
           <Route path="/proyectos" element={<Proyectos />} />
+          <Route path="/proyectos/:id/actividades" element={<ActividadesProyecto />} />
           {/* Podrías añadir una ruta 404 aquí */}
         </Routes>
       </div>
