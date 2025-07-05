@@ -209,6 +209,25 @@ def get_projects_by_user(db: Session, user_id: int):
 def get_project_by_id(db: Session, project_id: int, user_id: int):
     return db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()
 
+#--- Esto es nuevo, permite marcar un proyecto como favorito para mostrarlo en el inicio y en la pestaña de proyectos (con una estrella o algo) ---
+def set_favorite_project(db: Session, project_id: int, user_id: int):
+    db.query(models.Project).filter(
+        models.Project.user_id == user_id,
+        models.Project.is_favorite == True
+    ).update({"is_favorite": False})
+
+    project_to_favorite = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.user_id == user_id
+    ).first()
+
+    if project_to_favorite:
+        project_to_favorite.is_favorite = True
+        db.commit()
+        db.refresh(project_to_favorite)
+        return project_to_favorite
+    return None
+
 def delete_project(db: Session, project_id: int, user_id: int):
     """Elimina un proyecto y todas sus actividades laborales asociadas."""
     db_project = db.query(models.Project).filter(models.Project.id == project_id, models.Project.user_id == user_id).first()

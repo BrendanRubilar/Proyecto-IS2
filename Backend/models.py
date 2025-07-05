@@ -31,6 +31,7 @@ class Project(Base):
     name = Column(String, index=True)
     description = Column(String, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"))
+    is_favorite = Column(Boolean, default=False, nullable=False)
 
     owner = relationship("User", back_populates="projects")
     labor_activities = relationship("ActividadLaboral", back_populates="project", cascade="all, delete-orphan")

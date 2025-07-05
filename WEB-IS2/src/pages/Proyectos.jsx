@@ -152,7 +152,29 @@ function Proyectos() {
       alert("Error de conexión al eliminar el proyecto.");
     }
   };
-  
+  // Función para marcar un proyecto como favorito :)
+  const handleSetFavorite = async (projectId, e) => {
+    e.stopPropagation(); 
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    try {
+      const response = await fetch(`http://localhost:8000/projects/${projectId}/favorite`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+
+        fetchProyectos();
+      } else {
+        alert("Error al marcar como favorito.");
+      }
+    } catch (error) {
+      console.error("Error al marcar como favorito:", error);
+    }
+  };
+
   if (isLoading) {
     return (
         <div className={styles.proyectosPageContainer}>
@@ -212,17 +234,28 @@ function Proyectos() {
           ) : (
             <div className={`${styles.proyectosGrid} ${columnLayout === 4 ? styles.gridFourColumns : styles.gridTwoColumns} ${animationState !== 'idle' ? styles[animationState] : ''}`}>
               {proyectos.map(p => (
-               <div
-               key={p.id}
-               className={styles.proyectoCard}
-               onClick={() => navigate(`/proyectos/${p.id}/actividades`)}
-               role="button"
-               tabIndex={0}
-               onKeyDown={(e) => e.key === 'Enter' && navigate(`/proyectos/${p.id}/actividades`)}
-             >
-           
-             <button className={styles.deleteButton} onClick={(e) => {e.stopPropagation();handleAbrirModal(p);}}aria-label={`Eliminar el proyecto ${p.name}`}>×</button>
-
+                <div
+                  key={p.id}
+                  className={`${styles.proyectoCard} ${p.is_favorite ? styles.favoriteCard : ''}`}
+                  onClick={() => navigate(`/proyectos/${p.id}/actividades`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && navigate(`/proyectos/${p.id}/actividades`)}
+                >
+                  <button 
+                    className={`${styles.favoriteButton} ${p.is_favorite ? styles.isFavorite : ''}`}
+                    onClick={(e) => handleSetFavorite(p.id, e)}
+                    aria-label={`Marcar ${p.name} como favorito`}
+                  >
+                    ★
+                  </button>
+                  <button 
+                    className={styles.deleteButton} 
+                    onClick={(e) => {e.stopPropagation(); handleAbrirModal(p);}}
+                    aria-label={`Eliminar el proyecto ${p.name}`}
+                  >
+                    ×
+                  </button>
                   <h4>{p.name}</h4>
                   <p>{p.description}</p>
                 </div>

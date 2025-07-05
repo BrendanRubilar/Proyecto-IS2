@@ -127,17 +127,7 @@ def filtrar_actividades_endpoint(
     estado = estado.capitalize()
     return crud.filtrar_actividades(db=db, estado=estado, temp=temp, hum=hum, viento=viento)
 
-#main
-@app.get("/actividades/empresa/filtrar", response_model=list[schemas.Actividad], tags=["Actividades"])
-def filtrar_actividades_empresa(
-    estado: str,
-    temp: float,
-    hum: int,
-    viento: float,
-    db: Session = Depends(get_db)
-):
-    estado = estado.capitalize()
-    return crud.actividades_no_recomendadas(db=db, estado=estado, temp=temp, hum=hum, viento=viento)
+
 
 @app.get("/preferencias/", response_model=List[schemas.Preferencias], tags=["Preferencias"])
 def read_preferencias(
@@ -570,6 +560,27 @@ async def get_current_business_user(current_user: models.User = Depends(get_curr
         raise HTTPException(status_code=403, detail="Acceso denegado: se requiere una cuenta de empresa.")
     return current_user
 
+#Actualizado para las actividades laborales de empresas (Filtro antiguo ahora remasterizado en 4k)
+@app.get("/actividades/empresa/filtrar", response_model=List[schemas.ActividadLaboral], tags=["Actividades (Empresa)"])
+def filtrar_actividades_empresa(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_business_user)
+):
+    """
+    Obtiene TODAS las actividades laborales del proyecto marcado como favorito
+    para el usuario de empresa autenticado.
+    """
+    favorite_project = db.query(models.Project).filter(
+        models.Project.user_id == current_user.id,
+        models.Project.is_favorite == True
+    ).first()
+
+    if not favorite_project:
+        return [] # Si no hay proyecto favorito, devuelve una lista vacía
+
+    return favorite_project.labor_activities
+
+
 @app.post("/projects/", response_model=schemas.Project, tags=["Proyectos (Empresa)"]) 
 def create_project_endpoint(
     project: schemas.ProjectCreate,
@@ -599,6 +610,19 @@ def read_single_project_endpoint(
         raise HTTPException(status_code=404, detail="Proyecto no encontrado o no pertenece al usuario.")
     return db_project
 
+#Esto es nuevo, endpoint para marcar un proyecto como favorito y eliminar el favorito anterior si lo hubiera
+@app.post("/projects/{project_id}/favorite", response_model=schemas.Project, tags=["Proyectos (Empresa)"])
+def set_favorite_project_endpoint(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_business_user)
+):
+    """Marca un proyecto como el favorito del usuario."""
+    db_project = crud.set_favorite_project(db=db, project_id=project_id, user_id=current_user.id)
+    if db_project is None:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado o no pertenece al usuario.")
+    return db_project
+
 @app.delete("/projects/{project_id}", tags=["Proyectos (Empresa)"])
 def delete_project_endpoint(
     project_id: int,
@@ -610,6 +634,8 @@ def delete_project_endpoint(
     if not success:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado o no pertenece al usuario.")
     return {"message": "Proyecto eliminado exitosamente"}
+
+#'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 @app.post("/projects/{project_id}/activities/", response_model=schemas.ActividadLaboral, tags=["Proyectos (Empresa)"]) #Esto permite crear una actividad laboral en un proyecto
 def create_project_activity_endpoint(

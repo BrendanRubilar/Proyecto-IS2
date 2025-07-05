@@ -6,6 +6,7 @@ import CurrentWeatherDisplay from '../components/CurrentWeatherDisplay';
 import DailyForecastNav from '../components/DailyForecastNav';
 import HourlyForecastDisplay from '../components/HourlyForecastDisplay';
 import Tarjetas from '../components/Tarjetas';
+import TarjetasEmpresa from '../components/TarjetasEmpresa'; // <-- IMPORTAR NUEVO COMPONENTE
 import Map from '../components/Map';
 import ModalAviso from '../components/ModalNoPreferences';
 
@@ -15,10 +16,13 @@ function Inicio() {
   const [selectedDayDt, setSelectedDayDt] = useState(null);
   const [displayWeather, setDisplayWeather] = useState(null);
   const [actividades, setActividades] = useState([]);
+  const [actividadesEmpresa, setActividadesEmpresa] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCityName, setSelectedCityName] = useState('Concepción');
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [isBusiness, setIsBusiness] = useState(false);
+
   // Obtener email del usuario
   //useEffect(() => {
   //  const email = localStorage.getItem('userEmail');
@@ -85,6 +89,7 @@ function Inicio() {
   useEffect(() => {
     if (!displayWeather?.main) {
       setActividades([]);
+      setActividadesEmpresa([]);
       return;
     }
 
@@ -116,6 +121,25 @@ function Inicio() {
       return;
     }
 
+    // ------ LÓGICA PARA USUARIOS DE EMPRESA ------
+    if (isBusiness) {
+      fetch(`http://localhost:8000/actividades/empresa/filtrar`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Error al cargar actividades de empresa');
+        return res.json();
+      })
+      .then(data => {
+        if (Array.isArray(data)) setActividadesEmpresa(data);
+      })
+      .catch(err => {
+        console.error("Error actividades de empresa:", err);
+        setActividadesEmpresa([]);
+      });
+      return; 
+    }
+
     fetch(`http://localhost:8000/actividades/recomendadas?estado=${encodeURIComponent(estado)}&temperatura=${temp}&hum=${hum}&viento=${viento}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -135,7 +159,7 @@ function Inicio() {
         console.error("Error actividades recomendadas:", err);
         fetchGenericas();
       });
-  }, [displayWeather]);
+  }, [displayWeather, isBusiness]);
 
   const handleUbicacionChange = (cityData) => {
     if (cityData.lat && cityData.lon) {
@@ -187,6 +211,11 @@ const handleCityPresetSelect = async (cityName) => {
     setSelectedDayDt(dayDt);
   };
 
+  useEffect(() => {
+    const businessFlag = localStorage.getItem("is_business") === 'true';
+    setIsBusiness(businessFlag);
+  }, []);
+
   if (isLoading && !fullWeatherData && !error) {
     return <div className={styles.fullPageLoading}>Cargando datos iniciales...</div>;
   }
@@ -230,7 +259,11 @@ const handleCityPresetSelect = async (cityName) => {
         </div>
         <div className={styles.rightColumn}>
           <Map coords={mapCoords} />
-          <Tarjetas recomendaciones={actividades} />
+          {isBusiness ? (
+            <TarjetasEmpresa actividades={actividadesEmpresa} clima={displayWeather} />
+          ) : (
+            <Tarjetas recomendaciones={actividades} />
+          )}
         </div>
       </main>
       {mostrarModal && (
