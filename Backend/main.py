@@ -645,6 +645,7 @@ def create_project_activity_endpoint(
     current_user: models.User = Depends(get_current_business_user)
 ):
     """Crea una actividad laboral dentro de un proyecto específico."""
+    print(f"Creando actividad en proyecto {project_id}: {activity.dict()}")  # Debug logging
     db_project = crud.get_project_by_id(db, project_id=project_id, user_id=current_user.id)
     if db_project is None:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado o no pertenece al usuario.")

@@ -99,6 +99,7 @@ function Inicio() {
     const hum = displayWeather.humedad
     const viento = displayWeather.viento_velocidad
     const token = localStorage.getItem("accessToken");
+    console.log(temp)
     console.log(hum)
     console.log(viento)
     console.log(estado)
@@ -229,6 +230,7 @@ const handleCityPresetSelect = async (cityName) => {
   }
 
   return (
+ 
     <div className={styles.inicioDashboard}>
       <Header onUbicacionChange={handleUbicacionChange} onCityPresetSelect={handleCityPresetSelect} onCitySelect={handleCitySelect} />
       <main className={styles.mainDashboardContent}>

@@ -165,11 +165,14 @@ class ActividadLaboralBase(BaseModel):
     descripcion: str
 
 class ActividadLaboralCreate(ActividadLaboralBase):
-    pass
+    humedad_max: int
+    viento_max: float
 
 class ActividadLaboral(ActividadLaboralBase):
     id: int
     project_id: int
+    humedad_max: Optional[int] = None
+    viento_max: Optional[float] = None
     class Config:
         from_attributes = True
 

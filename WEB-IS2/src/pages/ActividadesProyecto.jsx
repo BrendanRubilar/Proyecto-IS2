@@ -40,6 +40,7 @@ function ActividadesProyecto() {
       const data = await response.json();
       setNombreProyecto(data.name);
       setActividades(data.labor_activities || []); 
+      console.log('Datos del proyecto:', data); // Debug: ver qué datos se reciben
 
     } catch (err) {
       setError(err.message);
@@ -62,15 +63,33 @@ function ActividadesProyecto() {
     e.preventDefault();
     const token = localStorage.getItem('accessToken');
 
+    // Validar que los campos numéricos tienen valores válidos
+    const tempMin = parseFloat(formData.temperatura_min);
+    const tempMax = parseFloat(formData.temperatura_max);
+    const humedadMax = parseInt(formData.humedad_max, 10);
+    const vientoMax = parseFloat(formData.viento_max);
+
+    if (isNaN(tempMin) || isNaN(tempMax) || isNaN(humedadMax) || isNaN(vientoMax)) {
+      alert('Por favor, ingresa valores numéricos válidos para temperatura, humedad y viento.');
+      return;
+    }
+
+    if (tempMin >= tempMax) {
+      alert('La temperatura mínima debe ser menor que la temperatura máxima.');
+      return;
+    }
+
     const actividadParaEnviar = {
       nombre: formData.nombre,
-      temperatura_min: parseFloat(formData.temperatura_min),
-      temperatura_max: parseFloat(formData.temperatura_max),
-      humedad_max: parseInt(formData.humedad_max, 10),
-      viento_max: parseFloat(formData.viento_max),
+      temperatura_min: tempMin,
+      temperatura_max: tempMax,
+      humedad_max: humedadMax,
+      viento_max: vientoMax,
       estado_dia: formData.estado_dia,
       descripcion: formData.descripcion,
     };
+
+    console.log('Datos a enviar:', actividadParaEnviar); // Debug: ver qué se está enviando
 
     try {
       const response = await fetch(`http://localhost:8000/projects/${proyecto_id}/activities/`, {
@@ -132,6 +151,8 @@ function ActividadesProyecto() {
           placeholder="Temperatura mínima"
           value={formData.temperatura_min}
           onChange={handleChange}
+          min="-50"
+          max="60"
           required
         />
 
@@ -142,16 +163,19 @@ function ActividadesProyecto() {
           placeholder="Temperatura máxima"
           value={formData.temperatura_max}
           onChange={handleChange}
+          min="-50"
+          max="60"
           required
         />
 
         <input
           type="number"
-          step="0.1"
           name="humedad_max"
           placeholder="Humedad máxima (%)"
           value={formData.humedad_max}
           onChange={handleChange}
+          min="0"
+          max="100"
           required
         />
 
@@ -162,6 +186,8 @@ function ActividadesProyecto() {
           placeholder="Viento máximo (km/h)"
           value={formData.viento_max}
           onChange={handleChange}
+          min="0"
+          max="300"
           required
         />
 
