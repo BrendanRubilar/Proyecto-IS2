@@ -651,6 +651,34 @@ def create_project_activity_endpoint(
         raise HTTPException(status_code=404, detail="Proyecto no encontrado o no pertenece al usuario.")
     return crud.create_project_activity(db=db, activity=activity, project_id=project_id)
 
+@app.delete("/projects/{project_id}/activities/{activity_id}", tags=["Proyectos (Empresa)"])
+def delete_project_activity_endpoint(
+    project_id: int,
+    activity_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_business_user)
+):
+    """Elimina una actividad laboral de un proyecto específico."""
+    # Verificar que el proyecto pertenece al usuario
+    db_project = crud.get_project_by_id(db, project_id=project_id, user_id=current_user.id)
+    if db_project is None:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado o no pertenece al usuario.")
+    
+    # Verificar que la actividad existe y pertenece al proyecto
+    db_activity = db.query(models.ActividadLaboral).filter(
+        models.ActividadLaboral.id == activity_id,
+        models.ActividadLaboral.project_id == project_id
+    ).first()
+    
+    if db_activity is None:
+        raise HTTPException(status_code=404, detail="Actividad no encontrada en este proyecto.")
+    
+    # Eliminar la actividad
+    db.delete(db_activity)
+    db.commit()
+    
+    return {"message": "Actividad eliminada exitosamente"}
+
 
 # Para ejecutar con `python main.py
 if __name__ == "__main__":
