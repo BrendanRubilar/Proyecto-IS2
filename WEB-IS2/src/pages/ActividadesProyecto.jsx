@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 function ActividadesProyecto() {
@@ -7,6 +7,9 @@ function ActividadesProyecto() {
 
   const [nombreProyecto, setNombreProyecto] = useState('');
   const [actividades, setActividades] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [formData, setFormData] = useState({
     nombre: '',
     temperatura_min: '',
@@ -17,45 +20,90 @@ function ActividadesProyecto() {
     descripcion: '',
   });
 
-  // Buscar nombre del proyecto en localStorage
-  useEffect(() => {
-    const proyectosGuardados = JSON.parse(localStorage.getItem("misProyectos")) || [];
-    const proyecto = proyectosGuardados.find(p => p.id.toString() === proyecto_id);
-    setNombreProyecto(proyecto?.name || `ID ${proyecto_id}`);
+  //------Ahora se cargar datos del proyecto y sus actividades desde el backend ------ :)
+  const fetchProjectData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    const token = localStorage.getItem('accessToken');
+
+    try {
+      const response = await fetch(`http://localhost:8000/projects/${proyecto_id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudo cargar el proyecto o no tienes permiso.');
+      }
+
+      const data = await response.json();
+      setNombreProyecto(data.name);
+      setActividades(data.labor_activities || []); 
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   }, [proyecto_id]);
+
+  useEffect(() => {
+    fetchProjectData();
+  }, [fetchProjectData]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem('accessToken');
 
-    const nuevaActividad = {
-      id: Date.now(),
-      proyecto_id,
+    const actividadParaEnviar = {
       nombre: formData.nombre,
       temperatura_min: parseFloat(formData.temperatura_min),
       temperatura_max: parseFloat(formData.temperatura_max),
-      humedad_max: parseFloat(formData.humedad_max),
+      humedad_max: parseInt(formData.humedad_max, 10),
       viento_max: parseFloat(formData.viento_max),
       estado_dia: formData.estado_dia,
       descripcion: formData.descripcion,
     };
 
-    setActividades(prev => [...prev, nuevaActividad]);
+    try {
+      const response = await fetch(`http://localhost:8000/projects/${proyecto_id}/activities/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(actividadParaEnviar),
+      });
 
-    setFormData({
-      nombre: '',
-      temperatura_min: '',
-      temperatura_max: '',
-      humedad_max: '',
-      viento_max: '',
-      estado_dia: '',
-      descripcion: '',
-    });
+      if (!response.ok) {
+        throw new Error('Error al guardar la actividad.');
+      }
+
+      setFormData({
+        nombre: '',
+        temperatura_min: '',
+        temperatura_max: '',
+        humedad_max: '',
+        viento_max: '',
+        estado_dia: '',
+        descripcion: '',
+      });
+      fetchProjectData();
+
+    } catch (err) {
+      alert(err.message);
+    }
   };
+
+  if (isLoading) return <p>Cargando actividades del proyecto...</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
