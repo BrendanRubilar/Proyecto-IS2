@@ -73,10 +73,12 @@ const Tarjetas = ({ recomendaciones }) => {
                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleCardClick(rec) }}
                             role="button"
                         >
-                            <h3 className={styles.cardTitleWithEmoji}>
-                                {rec.nombre}
-                                {emoji && <span className={styles.cardEmoji} aria-hidden="true">{emoji}</span>}
+                           <h3 className={styles.cardTitleWithEmoji}>
+                            {rec.nombre}
+                            {rec.isFavorite && <span className={styles.favoriteStar} title="Actividad favorita">⭐</span>}
+                            {emoji && <span className={styles.cardEmoji} aria-hidden="true">{emoji}</span>}
                             </h3>
+
                             <p>{rec.descripcion}</p>
                         </div>
                     );

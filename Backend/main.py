@@ -417,6 +417,9 @@ def add_favorite_activity_endpoint(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    
+    
+    
     """Agrega una actividad a favoritos del usuario."""
     favorite = crud.add_favorite_activity(db=db, user_id=current_user.id, actividad_id=actividad_id)
     if favorite is None:
@@ -444,6 +447,26 @@ def check_favorite_activity_endpoint(
     """Verifica si una actividad está en favoritos del usuario."""
     is_favorite = crud.is_activity_favorite(db=db, user_id=current_user.id, actividad_id=actividad_id)
     return {"is_favorite": is_favorite}
+
+@app.get("/favorites/activities/filtrar", response_model=List[schemas.Actividad], tags=["Favoritos"])
+def get_filtered_favorite_activities(
+    temperatura: float,
+    estado: str,
+    hum: int,
+    viento: float,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Devuelve las actividades favoritas del usuario que coinciden con el clima actual."""
+    return crud.get_user_favorite_activities_by_weather(
+        db=db,
+        user_id=current_user.id,
+        temperatura=temperatura,
+        estado=estado.capitalize(),
+        hum=hum,
+        viento=viento
+    )
+
 
 # --- Endpoints para Actividades Personalizadas, esto es lo nuevo que deben usar en el frontend!! ---
 @app.post("/user-activities/", response_model=schemas.UserActivity, tags=["Actividades Personalizadas"])

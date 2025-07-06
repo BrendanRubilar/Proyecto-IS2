@@ -135,9 +135,6 @@ def create_preferencias(db: Session, pref_list: list[schemas.PreferenciasCreate]
 
 
 
-
-
-
 # FILTRADO DE ACTIVIDADES con los datos de la API, instrucciones para DB (Esto le servirá a Juan).
 def filtrar_actividades(db: Session, estado: str, temp: float, hum: int, viento: float):
     return (

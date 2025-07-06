@@ -6,7 +6,7 @@ import CurrentWeatherDisplay from '../components/CurrentWeatherDisplay';
 import DailyForecastNav from '../components/DailyForecastNav';
 import HourlyForecastDisplay from '../components/HourlyForecastDisplay';
 import Tarjetas from '../components/Tarjetas';
-import TarjetasEmpresa from '../components/TarjetasEmpresa'; // <-- IMPORTAR NUEVO COMPONENTE
+import TarjetasEmpresa from '../components/TarjetasEmpresa';
 import Map from '../components/Map';
 import ModalAviso from '../components/ModalNoPreferences';
 
@@ -23,13 +23,6 @@ function Inicio() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [isBusiness, setIsBusiness] = useState(false);
 
-  // Obtener email del usuario
-  //useEffect(() => {
-  //  const email = localStorage.getItem('userEmail');
-  //  if (email) setUserEmail(email);
-  // }, []);
-
-  // Obtener datos del clima
   const fetchWeather = async (lat, lon) => {
     setIsLoading(true);
     setError(null);
@@ -41,7 +34,6 @@ function Inicio() {
       }
       const data = await response.json();
       setFullWeatherData(data);
-
       if (data.daily?.length) {
         setSelectedDayDt(data.daily[0].dt);
       } else if (data.current) {
@@ -56,13 +48,11 @@ function Inicio() {
     }
   };
 
-  // Reaccionar a cambios de coordenadas
   useEffect(() => {
     if (!mapCoords || mapCoords.length !== 2) return;
     fetchWeather(mapCoords[0], mapCoords[1]);
   }, [mapCoords]);
 
-  // Determinar clima actual o seleccionado
   useEffect(() => {
     if (!fullWeatherData) {
       setDisplayWeather(null);
@@ -85,7 +75,6 @@ function Inicio() {
     setDisplayWeather(weatherToShow);
   }, [selectedDayDt, fullWeatherData]);
 
-  // Obtener actividades según clima (con o sin token)
   useEffect(() => {
     if (!displayWeather?.main) {
       setActividades([]);
@@ -95,15 +84,10 @@ function Inicio() {
 
     const temp = displayWeather.temperatura ?? displayWeather.temp_max ?? 0;
     const estado = displayWeather.main;
-    const description = displayWeather.descripcion
-    const hum = displayWeather.humedad
-    const viento = displayWeather.viento_velocidad
+    const hum = displayWeather.humedad;
+    const viento = displayWeather.viento_velocidad;
     const token = localStorage.getItem("accessToken");
-    console.log(temp)
-    console.log(hum)
-    console.log(viento)
-    console.log(estado)
-    console.log(description)
+
     const fetchGenericas = () => {
       return fetch(`http://localhost:8000/actividades/filtrar?estado=${encodeURIComponent(estado)}&temp=${temp}&hum=${hum}&viento=${viento}`)
         .then(res => res.json())
@@ -122,39 +106,62 @@ function Inicio() {
       return;
     }
 
-    // ------ LÓGICA PARA USUARIOS DE EMPRESA ------
     if (isBusiness) {
       fetch(`http://localhost:8000/actividades/empresa/filtrar`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
-      .then(res => {
-        if (!res.ok) throw new Error('Error al cargar actividades de empresa');
-        return res.json();
-      })
-      .then(data => {
-        if (Array.isArray(data)) setActividadesEmpresa(data);
-      })
-      .catch(err => {
-        console.error("Error actividades de empresa:", err);
-        setActividadesEmpresa([]);
-      });
-      return; 
+        .then(res => {
+          if (!res.ok) throw new Error('Error al cargar actividades de empresa');
+          return res.json();
+        })
+        .then(data => {
+          if (Array.isArray(data)) setActividadesEmpresa(data);
+        })
+        .catch(err => {
+          console.error("Error actividades de empresa:", err);
+          setActividadesEmpresa([]);
+        });
+      return;
     }
 
+    // USUARIO GENERAL: Recomendaciones + favoritos
     fetch(`http://localhost:8000/actividades/recomendadas?estado=${encodeURIComponent(estado)}&temperatura=${temp}&hum=${hum}&viento=${viento}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => {
-        if (res.status === 404){
-
-          setMostrarModal(true); 
-          return fetchGenericas(); // Sin preferencias
-        } // Sin preferencias
+        if (res.status === 404) {
+          setMostrarModal(true);
+          return fetchGenericas();
+        }
         if (!res.ok) throw new Error(`Error ${res.status}`);
         return res.json();
       })
-      .then(data => {
-        if (Array.isArray(data)) setActividades(data);
+      .then(async data => {
+        if (!Array.isArray(data)) return;
+
+        let recomendaciones = [...data];
+
+        const favRes = await fetch(`http://localhost:8000/favorites/activities/filtrar?estado=${encodeURIComponent(estado)}&temperatura=${temp}&hum=${hum}&viento=${viento}`, {
+
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!favRes.ok) throw new Error("No se pudieron obtener los favoritos");
+
+        const favoritos = await favRes.json();
+        const favIds = favoritos.map(f => f.id);
+
+        recomendaciones = recomendaciones.map(act => ({
+          ...act,
+          isFavorite: favIds.includes(act.id)
+        }));
+
+        const recomendacionIds = new Set(recomendaciones.map(r => r.id));
+        const favoritosExtra = favoritos
+          .filter(fav => !recomendacionIds.has(fav.id))
+          .map(fav => ({ ...fav, isFavorite: true }));
+
+        setActividades([...favoritosExtra, ...recomendaciones]);
       })
       .catch(err => {
         console.error("Error actividades recomendadas:", err);
@@ -162,60 +169,51 @@ function Inicio() {
       });
   }, [displayWeather, isBusiness]);
 
+  useEffect(() => {
+    const businessFlag = localStorage.getItem("is_business") === 'true';
+    setIsBusiness(businessFlag);
+  }, []);
+
   const handleUbicacionChange = (cityData) => {
     if (cityData.lat && cityData.lon) {
-      console.log("Ciudad seleccionada:", cityData.display_name); // Depuración
       setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
-      console.log(cityData.display_name)
       setSelectedCityName(cityData.display_name);
     }
   };
 
-const handleCityPresetSelect = async (cityName) => {
-  setIsLoading(true);
-  setError(null);
-  try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}&limit=1`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Error buscando coordenadas.");
-    const data = await response.json();
-    if (data && data.length > 0) {
-      const cityData = data[0];
-      if (cityData.lat && cityData.lon) {
-        setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
-        setSelectedCityName(cityData.display_name); // 👈 Esta línea es la clave
+  const handleCityPresetSelect = async (cityName) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}&limit=1`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Error buscando coordenadas.");
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const cityData = data[0];
+        if (cityData.lat && cityData.lon) {
+          setMapCoords([parseFloat(cityData.lat), parseFloat(cityData.lon)]);
+          setSelectedCityName(cityData.display_name);
+        }
+      } else {
+        setError("Ciudad no encontrada.");
       }
-    } else {
-      setError("Ciudad no encontrada.");
+    } catch (error) {
+      console.error("Error ciudad preseleccionada:", error);
+      setError(error.message || "Error al buscar ciudad.");
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error("Error ciudad preseleccionada:", error);
-    setError(error.message || "Error al buscar ciudad.");
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+  };
 
   const handleCitySelect = ({ lat, lon, name }) => {
     setMapCoords([parseFloat(lat), parseFloat(lon)]);
-    setSelectedCityName(name); // Actualiza el nombre de la ciudad
-  };
-
-  const handleSelectCity = (cityData) => {
-    onUbicacionChange(cityData); // Enviar todo el objeto
-    setSearchTerm(cityData.display_name); // Actualiza el campo de búsqueda
-    setSearchResults([]); // Limpia los resultados
+    setSelectedCityName(name);
   };
 
   const handleDaySelect = (dayDt) => {
     setSelectedDayDt(dayDt);
   };
-
-  useEffect(() => {
-    const businessFlag = localStorage.getItem("is_business") === 'true';
-    setIsBusiness(businessFlag);
-  }, []);
 
   if (isLoading && !fullWeatherData && !error) {
     return <div className={styles.fullPageLoading}>Cargando datos iniciales...</div>;
@@ -230,7 +228,6 @@ const handleCityPresetSelect = async (cityName) => {
   }
 
   return (
- 
     <div className={styles.inicioDashboard}>
       <Header onUbicacionChange={handleUbicacionChange} onCityPresetSelect={handleCityPresetSelect} onCitySelect={handleCitySelect} />
       <main className={styles.mainDashboardContent}>
@@ -240,8 +237,7 @@ const handleCityPresetSelect = async (cityName) => {
           {displayWeather && (
             <CurrentWeatherDisplay
               weatherData={displayWeather}
-              cityName={selectedCityName} // Depuración
-              
+              cityName={selectedCityName}
             />
           )}
           {fullWeatherData.daily?.length > 0 && (
@@ -264,13 +260,13 @@ const handleCityPresetSelect = async (cityName) => {
           {isBusiness ? (
             <TarjetasEmpresa actividades={actividadesEmpresa} clima={displayWeather} />
           ) : (
-            <Tarjetas recomendaciones={actividades} />
+            <Tarjetas recomendaciones={[...actividades].sort((a, b) => (b.isFavorite ? 1 : 0) - (a.isFavorite ? 1 : 0))} />
           )}
         </div>
       </main>
       {mostrarModal && (
         <ModalAviso
-          mensaje= "No se encontraron recomendaciones personalizadas ya que no has configurado tus preferencias.  Se mostrarán actividades según el clima."
+          mensaje="No se encontraron recomendaciones personalizadas ya que no has configurado tus preferencias. Se mostrarán actividades según el clima."
           onClose={() => setMostrarModal(false)}
         />
       )}
