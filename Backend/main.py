@@ -402,6 +402,49 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
 async def read_users_me(current_user: models.User = Depends(get_current_user)):
     return current_user
 
+# --- Endpoints para Actividades Favoritas ---
+@app.get("/favorites/activities/", response_model=List[schemas.Actividad], tags=["Favoritos"])
+def get_user_favorite_activities_endpoint(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Obtiene todas las actividades favoritas del usuario autenticado."""
+    return crud.get_user_favorite_activities(db=db, user_id=current_user.id)
+
+@app.post("/favorites/activities/{actividad_id}", tags=["Favoritos"])
+def add_favorite_activity_endpoint(
+    actividad_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Agrega una actividad a favoritos del usuario."""
+    favorite = crud.add_favorite_activity(db=db, user_id=current_user.id, actividad_id=actividad_id)
+    if favorite is None:
+        raise HTTPException(status_code=404, detail="Actividad no encontrada")
+    return {"message": "Actividad agregada a favoritos exitosamente"}
+
+@app.delete("/favorites/activities/{actividad_id}", tags=["Favoritos"])
+def remove_favorite_activity_endpoint(
+    actividad_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Remueve una actividad de favoritos del usuario."""
+    success = crud.remove_favorite_activity(db=db, user_id=current_user.id, actividad_id=actividad_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Actividad no encontrada en favoritos")
+    return {"message": "Actividad removida de favoritos exitosamente"}
+
+@app.get("/favorites/activities/{actividad_id}/check", tags=["Favoritos"])
+def check_favorite_activity_endpoint(
+    actividad_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Verifica si una actividad está en favoritos del usuario."""
+    is_favorite = crud.is_activity_favorite(db=db, user_id=current_user.id, actividad_id=actividad_id)
+    return {"is_favorite": is_favorite}
+
 # --- Endpoints para Actividades Personalizadas, esto es lo nuevo que deben usar en el frontend!! ---
 @app.post("/user-activities/", response_model=schemas.UserActivity, tags=["Actividades Personalizadas"])
 def create_user_activity_endpoint(
@@ -478,6 +521,7 @@ def get_actividades_recomendadas(
         hum=hum, 
         viento=viento
     )
+
     
     print(f"Actividades personalizadas que coinciden con el clima: {len(actividades_personalizadas)}")
     for act in actividades_personalizadas:

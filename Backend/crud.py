@@ -237,6 +237,135 @@ def delete_project(db: Session, project_id: int, user_id: int):
         return True
     return False
 
+# --- CRUD para Favoritos de Usuario ---
+def add_favorite_project(db: Session, project_id: int, user_id: int):
+    """Agrega un proyecto a favoritos del usuario."""
+    # Verificar que el proyecto existe y pertenece al usuario
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.user_id == user_id
+    ).first()
+    
+    if not project:
+        return None
+    
+    # Verificar si ya está en favoritos
+    existing_favorite = db.query(models.FavoriteProject).filter(
+        models.FavoriteProject.user_id == user_id,
+        models.FavoriteProject.project_id == project_id
+    ).first()
+    
+    if existing_favorite:
+        return existing_favorite  # Ya está en favoritos
+    
+    # Crear nuevo favorito
+    db_favorite = models.FavoriteProject(user_id=user_id, project_id=project_id)
+    db.add(db_favorite)
+    db.commit()
+    db.refresh(db_favorite)
+    return db_favorite
+
+def get_user_favorites(db: Session, user_id: int):
+    """Obtiene todos los proyectos favoritos de un usuario."""
+    return db.query(models.Project).join(
+        models.FavoriteProject,
+        models.Project.id == models.FavoriteProject.project_id
+    ).filter(
+        models.FavoriteProject.user_id == user_id
+    ).all()
+
+def remove_favorite_project(db: Session, project_id: int, user_id: int):
+    """Remueve un proyecto de favoritos del usuario."""
+    favorite = db.query(models.FavoriteProject).filter(
+        models.FavoriteProject.user_id == user_id,
+        models.FavoriteProject.project_id == project_id
+    ).first()
+    
+    if favorite:
+        db.delete(favorite)
+        db.commit()
+        return True
+    return False
+
+def is_project_favorite(db: Session, project_id: int, user_id: int):
+    """Verifica si un proyecto está en favoritos del usuario."""
+    favorite = db.query(models.FavoriteProject).filter(
+        models.FavoriteProject.user_id == user_id,
+        models.FavoriteProject.project_id == project_id
+    ).first()
+    return favorite is not None
+
+# --- CRUD para Actividades Favoritas del Usuario ---
+def get_user_favorite_activities(db: Session, user_id: int):
+    """Obtiene todas las actividades favoritas de un usuario."""
+    return db.query(models.Actividad).join(
+        models.Favorito,
+        models.Actividad.id == models.Favorito.actividad_id
+    ).filter(
+        models.Favorito.user_id == user_id
+    ).all()
+
+
+
+#ESTO ES PARA EL JUAN
+def get_user_favorite_activities_by_weather(db: Session, user_id: int, temperatura: float, estado: str, hum: int, viento: float):
+    """Obtiene actividades favoritas del usuario que coinciden con las condiciones climáticas."""
+    return db.query(models.Actividad).join(
+        models.Favorito,
+        models.Actividad.id == models.Favorito.actividad_id
+    ).filter(
+        models.Favorito.user_id == user_id,
+        models.Actividad.temperatura_min <= temperatura,
+        models.Actividad.temperatura_max >= temperatura,
+        models.Actividad.estado_dia == estado,
+        models.Actividad.humedad_max >= hum,
+        models.Actividad.viento_max >= viento
+    ).all()
+
+def add_favorite_activity(db: Session, user_id: int, actividad_id: int):
+    """Agrega una actividad a favoritos del usuario."""
+    # Verificar que la actividad existe
+    actividad = db.query(models.Actividad).filter(models.Actividad.id == actividad_id).first()
+    if not actividad:
+        return None
+    
+    # Verificar si ya está en favoritos
+    existing_favorite = db.query(models.Favorito).filter(
+        models.Favorito.user_id == user_id,
+        models.Favorito.actividad_id == actividad_id
+    ).first()
+    
+    if existing_favorite:
+        return existing_favorite  # Ya está en favoritos
+    
+    # Crear nuevo favorito
+    db_favorite = models.Favorito(user_id=user_id, actividad_id=actividad_id)
+    db.add(db_favorite)
+    db.commit()
+    db.refresh(db_favorite)
+    return db_favorite
+
+def remove_favorite_activity(db: Session, user_id: int, actividad_id: int):
+    """Remueve una actividad de favoritos del usuario."""
+    favorite = db.query(models.Favorito).filter(
+        models.Favorito.user_id == user_id,
+        models.Favorito.actividad_id == actividad_id
+    ).first()
+    
+    if favorite:
+        db.delete(favorite)
+        db.commit()
+        return True
+    return False
+
+def is_activity_favorite(db: Session, user_id: int, actividad_id: int):
+    """Verifica si una actividad está en favoritos del usuario."""
+    favorite = db.query(models.Favorito).filter(
+        models.Favorito.user_id == user_id,
+        models.Favorito.actividad_id == actividad_id
+    ).first()
+    return favorite is not None
+
 # --- CRUD para Actividades Laborales dentro de Proyectos ---
 def create_project_activity(db: Session, activity: schemas.ActividadLaboralCreate, project_id: int):
     db_activity = models.ActividadLaboral(**activity.dict(), project_id=project_id)
@@ -244,4 +373,7 @@ def create_project_activity(db: Session, activity: schemas.ActividadLaboralCreat
     db.commit()
     db.refresh(db_activity)
     return db_activity
+
+
+
 
