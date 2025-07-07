@@ -13,6 +13,14 @@ Caracteristicas
   - **Preferencias de usuario**
   - **Interfaz mejorada**
 
+## Sprint 3
+Caracteristicas
+  - **Cuentas de usuario empresa**
+  - **Favoritos de usuario**
+  - **Actividades personalizadas de usuario**
+  - **Proyectos de empresas**
+  - **Actividades laborales de proyecto**
+
 ## Instrucciones de compilación
 Se utiliza Docker, usar comando docker-compose up --build
 
