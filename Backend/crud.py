@@ -134,21 +134,21 @@ def create_preferencias(db: Session, pref_list: list[schemas.PreferenciasCreate]
 
 
 def get_favoritos(db: Session, usr: User):
-    return db.query(models.FavoriteActivities).filter(models.FavoriteActivities.user_id == usr.id).all()
+    return db.query(models.Favorito).filter(models.Favorito.user_id == usr.id).all()
 def create_favoritos(db: Session, fav_list: list[schemas.FavoritosCreate], usr: User):
     if usr is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-    db.query(models.FavoriteActivities).filter(models.FavoriteActivities.user_id == usr.id).delete()
+    db.query(models.Favorito).filter(models.Favorito.user_id == usr.id).delete()
     db.commit()
 
     nuevos_favs = []
     print("Fav list:", fav_list)
     print("User ID:", usr.id)
     for fav in fav_list:
-        nuevo_fav = models.FavoriteActivities(
+        nuevo_fav = models.Favorito(
             user_id=usr.id,
-            activity_id=fav.actividad_id   #revisar bien
+            actividad_id=fav.actividad_id   #revisar bien
         )
         db.add(nuevo_fav)
         nuevos_favs.append(nuevo_fav)

@@ -600,6 +600,10 @@ def get_actividades_recomendadas(
         hum=hum, 
         viento=viento
     )
+    existen_actividades_favoritas = crud.get_user_favorite_activities(
+        db=db, 
+        user_id=user.id
+    )
 
     
     print(f"Actividades personalizadas que coinciden con el clima: {len(actividades_personalizadas)}")
@@ -607,7 +611,7 @@ def get_actividades_recomendadas(
         print(f"  - {act.nombre}: cumple condiciones climáticas")
     
     # Verificar si el usuario tiene preferencias o actividades personalizadas
-    if not preferencias and not actividades_personalizadas:
+    if not preferencias and not actividades_personalizadas and not existen_actividades_favoritas:
         raise HTTPException(
             status_code=404, 
             detail="El usuario no tiene preferencias registradas ni actividades personalizadas que coincidan con el clima actual"

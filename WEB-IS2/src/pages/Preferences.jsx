@@ -260,7 +260,7 @@ const Preferences = () => {
     localStorage.setItem('userCustomActivities', JSON.stringify(customActivities));
   }, [customActivities]);
 
-  const handleAddCustomActivity = (e) => {
+  const handleAddCustomActivity = async (e) => {
     e.preventDefault();
     if (!newActivity.nombre.trim()) {
       alert("El nombre de la actividad no puede estar vacío.");
