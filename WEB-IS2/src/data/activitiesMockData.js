@@ -1,6 +1,7 @@
 export const DUMMY_DETALLES_ACTIVIDADES = {
   "Caminata en el parque": {
     emoji: "🚶‍♀️",
+    id_num: 1,
     consejos: [
       "Lleva calzado cómodo y adecuado para caminar.",
       "Aplica protector solar, incluso en días nublados.",
@@ -15,6 +16,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Ciclismo de montaña": {
     emoji: "🚵",
+    id_num: 2,
     consejos: [
       "Usa casco y equipo de protección (rodilleras, coderas).",
       "Revisa tu bicicleta antes de salir (frenos, llantas).",
@@ -29,6 +31,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Nadar en la piscina": {
     emoji: "🏊",
+    id_num: 3,
     consejos: [
       "No olvides tu traje de baño, toalla y gafas de natación.",
       "Dúchate antes y después de entrar a la piscina.",
@@ -43,6 +46,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Día de picnic": {
     emoji: "🥪",
+    id_num: 4,
     consejos: [
       "Prepara comida fácil de transportar y consumir.",
       "Lleva una manta o mantel para sentarte.",
@@ -57,6 +61,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Senderismo": {
     emoji: "🥾",
+    id_num: 5,
     consejos: [
       "Usa botas de senderismo con buen agarre.",
       "Vístete en capas para adaptarte a los cambios de temperatura.",
@@ -71,6 +76,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Correr en el parque": {
     emoji: "🏃‍♂️",
+    id_num: 6,
     consejos: [
         "Usa zapatillas adecuadas para correr.",
         "Realiza un calentamiento previo y estiramientos al finalizar.",
@@ -85,6 +91,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Fotografía en el campo": {
     emoji: "📸",
+    id_num: 7,
     consejos: [
         "Lleva baterías extra y tarjetas de memoria.",
         "Considera diferentes lentes para variar tus tomas (gran angular, teleobjetivo).",
@@ -99,6 +106,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Golf": {
     emoji: "🏌️",
+    id_num: 8,
     consejos: [
         "Vístete con la etiqueta adecuada para el campo de golf.",
         "Lleva tus propios palos si los tienes, o alquila en el club.",
@@ -113,6 +121,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Paseo en bote": {
     emoji: "🛶",
+    id_num: 9,
     consejos: [
         "Usa chaleco salvavidas, especialmente si no sabes nadar bien.",
         "Protege tus dispositivos electrónicos del agua.",
@@ -127,6 +136,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Escalada en roca": {
     emoji: "🧗",
+    id_num: 10,
     consejos: [
         "Utiliza siempre equipo de seguridad certificado (arnés, casco, cuerdas).",
         "Escala con un compañero experimentado y conoce las técnicas de aseguramiento.",
@@ -142,6 +152,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   //Rain
   "Leer un libro bajo techo": {
     emoji: "📚",
+    id_num: 11,
     consejos: [
       "Elige un lugar cómodo y con buena iluminación.",
       "Prepara una bebida caliente para acompañar tu lectura.",
@@ -156,6 +167,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Ver una película en casa": {
     emoji: "🎬",
+    id_num: 12,
     consejos: [
       "Prepara palomitas de maíz u otros snacks.",
       "Asegúrate de tener un ambiente oscuro y cómodo.",
@@ -170,6 +182,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Cocinar recetas nuevas": {
     emoji: "🍳",
+    id_num: 13,
     consejos: [
       "Lee la receta completa antes de empezar.",
       "Prepara todos los ingredientes (mise en place).",
@@ -184,6 +197,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Hacer yoga en casa": {
     emoji: "🧘",
+    id_num: 14,
     consejos: [
       "Busca un espacio tranquilo y libre de distracciones.",
       "Utiliza una esterilla de yoga para mayor comodidad y agarre.",
@@ -198,6 +212,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Pintura o manualidades": {
     emoji: "🎨",
+    id_num: 15,
     consejos: [
       "Reúne todos los materiales antes de empezar.",
       "Protege la superficie de trabajo para evitar manchas.",
@@ -212,6 +227,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Escuchar música y relajarse": {
     emoji: "🎧",
+    id_num: 16,
     consejos: [
       "Elige música que te transmita calma o alegría.",
       "Utiliza auriculares de buena calidad para una mejor experiencia.",
@@ -226,6 +242,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Jugar a juegos de mesa": {
     emoji: "🎲",
+    id_num: 17,
     consejos: [
       "Elige un juego adecuado para el número de jugadores y sus preferencias.",
       "Lee las reglas antes de empezar y explícalas claramente.",
@@ -240,6 +257,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Meditar": {
     emoji: "🧘‍♀️", // Otra opción para yoga/meditación
+    id_num: 18,
     consejos: [
       "Encuentra un lugar tranquilo donde no te interrumpan.",
       "Adopta una postura cómoda, sentado o acostado.",
@@ -254,6 +272,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Planificar tus próximas vacaciones": {
     emoji: "🗺️",
+    id_num: 19,
     consejos: [
       "Define tu presupuesto y el tipo de viaje que deseas.",
       "Investiga destinos, vuelos y alojamiento.",
@@ -268,6 +287,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Hacer tareas de limpieza en casa": {
     emoji: "🧹",
+    id_num: 20,
     consejos: [
       "Haz una lista de tareas para organizarte.",
       "Pon música para hacer la tarea más amena.",
@@ -283,6 +303,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   //Snow
   "Esquí o snowboard": {
     emoji: "⛷️", // o 🏂
+    id_num: 21,
     consejos: [
       "Toma clases si eres principiante.",
       "Vístete en capas impermeables y abrigadoras.",
@@ -298,6 +319,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Construir un muñeco de nieve": {
     emoji: "☃️",
+    id_num: 22,
     consejos: [
       "Usa nieve húmeda, es más fácil de compactar.",
       "Empieza con una bola grande para la base y ve añadiendo bolas más pequeñas.",
@@ -312,6 +334,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Patinaje sobre hielo": {
     emoji: "⛸️",
+    id_num: 23,
     consejos: [
       "Alquila patines de tu talla y asegúrate de que estén bien ajustados.",
       "Vístete con ropa cómoda que te permita moverte, pero abrigada.",
@@ -326,6 +349,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Senderismo en la nieve": {
     emoji: "❄️", // O usar 🥾 con un fondo nevado si quieres diferenciarlo
+    id_num: 24,
     consejos: [
       "Usa botas de senderismo impermeables y con buen agarre, o raquetas de nieve si hay mucha nieve.",
       "Vístete en capas, incluyendo ropa térmica.",
@@ -340,6 +364,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Tomar chocolate caliente": {
     emoji: "☕", // O 🍫
+    id_num: 25,
     consejos: [
       "Prepara el chocolate con leche o agua, según tu preferencia.",
       "Añade malvaviscos, crema batida o una pizca de canela.",
@@ -354,6 +379,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Leer junto a la chimenea": {
     emoji: "🔥",
+    id_num: 26,
     consejos: [
       "Asegúrate de que la chimenea esté funcionando de forma segura.",
       "Elige un libro que te atrape.",
@@ -368,6 +394,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Fotografía de paisajes nevados": {
     emoji: "🏞️",
+    id_num: 27,
     consejos: [
       "Protege tu cámara del frío y la humedad (baterías duran menos con frío).",
       "Usa un filtro polarizador para reducir reflejos y realzar el azul del cielo.",
@@ -382,6 +409,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Sledging (andar en trineo)": {
     emoji: "🛷",
+    id_num: 28,
     consejos: [
       "Elige una colina segura, sin obstáculos como árboles o rocas.",
       "Asegúrate de que la zona de llegada sea amplia y segura.",
@@ -396,6 +424,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Hacer un ángel en la nieve": {
     emoji: "👼",
+    id_num: 29,
     consejos: [
       "Busca una zona con nieve polvo y sin pisar.",
       "Acuéstate boca arriba con cuidado.",
@@ -410,6 +439,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Ver películas navideñas": {
     emoji: "🎄",
+    id_num: 30,
     consejos: [
       "Prepara un ambiente acogedor con mantas y luces tenues.",
       "Ten a mano snacks típicos navideños (turrón, polvorones, chocolate caliente).",
@@ -425,6 +455,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   //Mist
   "Caminata en el bosque": { 
     emoji: "🌲", // Reutilizado, podrías buscar uno específico para niebla si existe
+    id_num: 31,
     consejos: [
       "Lleva ropa de colores visibles si la niebla es densa.",
       "Presta atención a las señales del sendero, es más fácil desorientarse.",
@@ -439,6 +470,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Paseo en barco en el río": {
     emoji: "🚢", // o 🛶 si es más pequeño
+    id_num: 32,
     consejos: [
       "Verifica que el operador del barco tenga experiencia navegando con niebla.",
       "Lleva ropa abrigada e impermeable.",
@@ -453,6 +485,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Visita a un mirador": {
     emoji: "🔭",
+    id_num: 33,
     consejos: [
       "Consulta el pronóstico, a veces la niebla se disipa en alturas.",
       "Si la niebla es persistente, puede que no veas mucho, pero el 'mar de nubes' desde arriba es espectacular.",
@@ -467,6 +500,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Sesión de fotografía en la niebla": {
     emoji: "🌫️", // Emoji de niebla
+    id_num: 34,
     consejos: [
       "Protege tu equipo de la humedad.",
       "Busca siluetas, luces difusas y elementos que destaquen en la niebla.",
@@ -481,6 +515,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Ciclismo en la niebla": {
     emoji: "🚲", // Reutilizado
+    id_num: 35,
     consejos: [
       "Usa luces delanteras y traseras, y ropa reflectante.",
       "Reduce la velocidad y aumenta la distancia de seguridad.",
@@ -495,6 +530,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Trekking en la montaña": { 
     emoji: "⛰️", // Reutilizado
+    id_num: 36,
     consejos: [
       "Lleva GPS o mapa y brújula, la orientación es crucial con niebla.",
       "Vístete en capas y con ropa impermeable y visible.",
@@ -509,6 +545,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Observación de aves": { 
     emoji: "🐦", 
+    id_num: 37,
     consejos: [
       "Agudiza el oído, los cantos pueden ser tu mejor guía.",
       "Muévete despacio y en silencio.",
@@ -523,6 +560,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Paseo por el jardín botánico": {
     emoji: "🌷",
+    id_num: 39,
     consejos: [
       "Disfruta de la tranquilidad y el ambiente húmedo.",
       "Observa cómo la niebla realza los colores y texturas de las plantas.",
@@ -537,6 +575,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Café en la terraza con niebla": {
     emoji: "☕", // Reutilizado
+    id_num: 40,
     consejos: [
       "Asegúrate de que la terraza esté resguardada o tenga calefactores.",
       "Pide una bebida caliente para entrar en calor.",
@@ -552,6 +591,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   //Clouds
   "Café en una terraza": { 
     emoji: "☕", // Reutilizado
+    id_num: 41,
     consejos: [
       "Elige una terraza con buenas vistas o un ambiente agradable.",
       "Un día nublado puede ser perfecto, sin el sol directo.",
@@ -566,6 +606,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Visitar un museo": {
     emoji: "🏛️",
+    id_num: 42,
     consejos: [
       "Consulta los horarios y si hay exposiciones especiales.",
       "Planifica tu visita, algunos museos son muy grandes.",
@@ -580,6 +621,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Leer en un café": {
     emoji: "📖", // Diferente a 📚 para variedad
+    id_num: 43,
     consejos: [
       "Elige un café con ambiente tranquilo y asientos cómodos.",
       "Pide una bebida que puedas disfrutar lentamente.",
@@ -594,6 +636,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Películas en casa": { 
     emoji: "🍿", // Palomitas
+    id_num: 44,
     consejos: [
       "Prepara el ambiente: luces bajas, mantas, cojines.",
       "Elige una película que te apetezca mucho o una saga para maratón.",
@@ -608,6 +651,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Día de spa": {
     emoji: "💆",
+    id_num: 45,
     consejos: [
       "Reserva con antelación, especialmente si quieres tratamientos específicos.",
       "Llega un poco antes para relajarte y familiarizarte con las instalaciones.",
@@ -622,6 +666,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Cultura en un centro de arte": {
     emoji: "🖼️",
+    id_num: 46,
     consejos: [
       "Consulta la programación: exposiciones, charlas, talleres.",
       "Ve con la mente abierta para descubrir nuevas formas de arte.",
@@ -636,6 +681,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Tarde de juegos de mesa": { 
     emoji: "♟️", // Ajedrez como ejemplo de juego
+    id_num: 47,
     consejos: [
       "Invita a amigos o familiares con gustos similares en juegos.",
       "Prepara una selección de juegos variada.",
@@ -650,6 +696,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Cocina en casa": { 
     emoji: "👩‍🍳", // Cocinero/a
+    id_num: 48,
     consejos: [
       "Elige una receta que te motive, puede ser algo nuevo o un plato reconfortante.",
       "Pon tu música favorita para crear un buen ambiente.",
@@ -664,6 +711,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Té en una librería": {
     emoji: "🍵",
+    id_num: 49,
     consejos: [
       "Busca librerías que tengan una zona de cafetería acogedora.",
       "Pide un té especial o tu infusión favorita.",
@@ -678,6 +726,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Visitar un centro comercial": {
     emoji: "🛍️",
+    id_num: 50,
     consejos: [
       "Define un propósito para tu visita (compras, ocio, comida) o simplemente pasea.",
       "Aprovecha para ver escaparates y descubrir novedades.",
@@ -693,6 +742,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   //Actividades 100x100 (genéricas)
   "Observa las aves": {
     emoji: "🦉", // Búho como ejemplo
+    id_num: 51,
     consejos: [
       "Consigue unos binoculares para ver mejor los detalles.",
       "Lleva una guía de aves de tu región.",
@@ -707,6 +757,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Observa la lluvia caer": {
     emoji: "🌧️",
+    id_num: 52,
     consejos: [
       "Busca una ventana con una buena vista.",
       "Prepara una bebida caliente (té, café, chocolate).",
@@ -721,6 +772,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Paseo por la ciudad": { 
     emoji: "🏙️", 
+    id_num: 53,
     consejos: [
       "Lleva calzado cómodo e impermeable si el clima lo requiere.",
       "Un paraguas puede ser útil.",
@@ -735,6 +787,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
   },
   "Comer galletas y bebida caliente": {
     emoji: "🍪",
+    id_num: 55,
     consejos: [
       "Prepara tus galletas favoritas o compra unas de buena calidad.",
       "Elige tu bebida caliente preferida: té, café, chocolate, leche caliente.",
@@ -752,6 +805,7 @@ export const DUMMY_DETALLES_ACTIVIDADES = {
 // Simplified list for "Favoritos" section
 export const ALL_ACTIVITIES_FOR_FAVORITES = Object.keys(DUMMY_DETALLES_ACTIVIDADES).map(name => ({
   id: name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''), // Generate a simple ID
+  id_num: DUMMY_DETALLES_ACTIVIDADES[name].id_num,
   name: name,
   emoji: DUMMY_DETALLES_ACTIVIDADES[name].emoji || "✨"
 })); 
