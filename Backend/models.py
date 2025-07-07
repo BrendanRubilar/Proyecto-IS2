@@ -68,3 +68,9 @@ class ActivityPreference(Base):
     actividad = relationship("Actividad", backref="preferences")
     activity_type = relationship("ActivityType")
     modality = relationship("Modality")
+
+class FavoriteActivities(Base):
+    __tablename__ = "favorite_activities"
+
+    user_id = Column(Integer, primary_key=True)
+    activity_id = Column(Integer, primary_key=True)
