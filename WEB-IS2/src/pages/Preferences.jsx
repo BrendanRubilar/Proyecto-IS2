@@ -156,32 +156,43 @@ const Preferences = () => {
   };
   
   const handleSaveChangesFavs = async () => {
-    console.log("Posting favoritos:", favoritesToPostBody());
-    console.log(favoritesToPostBody())
     if (isSaving) return;
     setIsSaving(true);
     setNotification({ message: '¡Guardando favoritos...', type: 'info', visible: true });
+    
     const token = localStorage.getItem("accessToken");
     if (!token) {
       setNotification({ message: 'No autorizado. Por favor inicia sesión.', type: 'error', visible: true });
-      setIsSaving(false); return;
+      setIsSaving(false);
+      return;
     }
+
     try {
       const response = await fetch('http://localhost:8000/favoritos/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(favoritesToPostBody()),
       });
-      if (!response.ok) throw new Error('Error al guardar favoritos');
-      await response.json();
+
+      // Guardamos la respuesta JSON en una variable para verificarla
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Si el backend devuelve un error (ej. 4xx, 5xx), lo mostramos
+        throw new Error(data.detail || 'Error al guardar favoritos');
+      }
+
+      // Si todo fue bien (response.ok es true), mostramos el mensaje de éxito
       setNotification({ message: '¡Favoritos guardados con éxito!', type: 'success', visible: true });
+      
       setTimeout(() => {
         setNotification({ message: '', type: '', visible: false });
         navigate('/');
       }, 1800);
+
     } catch (error) {
-      console.error("this is the error", error);
-      setNotification({ message: 'Error al guardar favoritos.', type: 'error', visible: true });
+      console.error("Error al guardar favoritos:", error);
+      setNotification({ message: error.message || 'Error al guardar favoritos.', type: 'error', visible: true });
     } finally {
       setIsSaving(false);
     }

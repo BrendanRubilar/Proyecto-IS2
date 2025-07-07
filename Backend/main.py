@@ -224,13 +224,13 @@ def read_favoritos(
     return crud.get_favoritos(db=db, usr=user)
 
 
-@app.post("/favoritos/", response_model=List[schemas.Favoritos], tags=["Favoritos"])
+@app.post("/favoritos/", tags=["Favoritos"])
 def crear_favoritos(
     fav_list: List[schemas.FavoritosCreate],
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ):
-    # Validar token y usuario
+    # Validar token y usuario (tu código de autenticación se mantiene igual)
     credentials_exception = HTTPException(
         status_code=401,
         detail="No se pudieron validar las credenciales",
@@ -248,10 +248,12 @@ def crear_favoritos(
     user = crud.get_user_by_email(db, email=email)
     if user is None:
         raise credentials_exception
+    
+    # La lógica de guardado sigue siendo la misma
+    crud.create_favoritos(db=db, fav_list=fav_list, usr=user)
 
-    nuevos_favs = crud.create_favoritos(db=db, fav_list=fav_list, usr=user)
-
-    return nuevos_favs
+    # Devolvemos una respuesta JSON simple y explícita en lugar de la lista
+    return {"message": "Favoritos guardados con éxito"}
 
 
 
