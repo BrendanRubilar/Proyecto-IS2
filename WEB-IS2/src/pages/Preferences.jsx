@@ -148,6 +148,46 @@ const Preferences = () => {
 
   const isFavorite = (activityId) => favoritos.includes(activityId);
 
+
+  const favoritesToPostBody = () => {
+    return ALL_ACTIVITIES_FOR_FAVORITES
+    .filter(activity => favoritos.includes(activity.id))
+    .map(activity => ({ actividad_id: activity.id_num }));
+  };
+  
+  const handleSaveChangesFavs = async () => {
+    console.log("Posting favoritos:", favoritesToPostBody());
+    console.log(favoritesToPostBody())
+    if (isSaving) return;
+    setIsSaving(true);
+    setNotification({ message: '¡Guardando favoritos...', type: 'info', visible: true });
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setNotification({ message: 'No autorizado. Por favor inicia sesión.', type: 'error', visible: true });
+      setIsSaving(false); return;
+    }
+    try {
+      const response = await fetch('http://localhost:8000/favoritos/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(favoritesToPostBody()),
+      });
+      if (!response.ok) throw new Error('Error al guardar favoritos');
+      await response.json();
+      setNotification({ message: '¡Favoritos guardados con éxito!', type: 'success', visible: true });
+      setTimeout(() => {
+        setNotification({ message: '', type: '', visible: false });
+        navigate('/');
+      }, 1800);
+    } catch (error) {
+      console.error("this is the error", error);
+      setNotification({ message: 'Error al guardar favoritos.', type: 'error', visible: true });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
   useEffect(() => {
     localStorage.setItem('userCustomActivities', JSON.stringify(customActivities));
   }, [customActivities]);
@@ -256,6 +296,17 @@ const Preferences = () => {
                   <span className={styles.favoriteActivityName}>{activity.name}</span>
                 </button>
               ))}
+            </div>
+            <div className={styles.saveButtonWrapper}>
+              <button className={styles.saveButton} onClick={handleSaveChangesFavs} disabled={isSaving}>
+                {isSaving ? 'Guardando...' : 'Guardar Favoritos y Volver'}
+              </button>
+              <Notification 
+                message={notification.message} type={notification.type}
+                isVisible={notification.visible}
+                onClose={() => setNotification({ ...notification, visible: false })}
+                duration={1800} fadeOutTime={300}
+              />
             </div>
           </div>
         )}
