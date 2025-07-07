@@ -205,9 +205,62 @@ const Preferences = () => {
 
   const isFavorite = (activityId) => favoritos.includes(activityId);
 
+
+  const favoritesToPostBody = () => {
+    return ALL_ACTIVITIES_FOR_FAVORITES
+    .filter(activity => favoritos.includes(activity.id))
+    .map(activity => ({ actividad_id: activity.id_num }));
+  };
   
-  // 5. Lógica para añadir y quitar actividades usando el backend
-  const handleAddCustomActivity = async (e) => {
+  const handleSaveChangesFavs = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    setNotification({ message: '¡Guardando favoritos...', type: 'info', visible: true });
+    
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setNotification({ message: 'No autorizado. Por favor inicia sesión.', type: 'error', visible: true });
+      setIsSaving(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:8000/favoritos/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(favoritesToPostBody()),
+      });
+
+      // Guardamos la respuesta JSON en una variable para verificarla
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Si el backend devuelve un error (ej. 4xx, 5xx), lo mostramos
+        throw new Error(data.detail || 'Error al guardar favoritos');
+      }
+
+      // Si todo fue bien (response.ok es true), mostramos el mensaje de éxito
+      setNotification({ message: '¡Favoritos guardados con éxito!', type: 'success', visible: true });
+      
+      setTimeout(() => {
+        setNotification({ message: '', type: '', visible: false });
+        navigate('/');
+      }, 1800);
+
+    } catch (error) {
+      console.error("Error al guardar favoritos:", error);
+      setNotification({ message: error.message || 'Error al guardar favoritos.', type: 'error', visible: true });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
+  useEffect(() => {
+    localStorage.setItem('userCustomActivities', JSON.stringify(customActivities));
+  }, [customActivities]);
+
+  const handleAddCustomActivity = (e) => {
     e.preventDefault();
     if (!newActivity.nombre.trim()) {
       alert("El nombre de la actividad no puede estar vacío.");
@@ -364,6 +417,17 @@ const Preferences = () => {
                   <span className={styles.favoriteActivityName}>{activity.name}</span>
                 </button>
               ))}
+            </div>
+            <div className={styles.saveButtonWrapper}>
+              <button className={styles.saveButton} onClick={handleSaveChangesFavs} disabled={isSaving}>
+                {isSaving ? 'Guardando...' : 'Guardar Favoritos y Volver'}
+              </button>
+              <Notification 
+                message={notification.message} type={notification.type}
+                isVisible={notification.visible}
+                onClose={() => setNotification({ ...notification, visible: false })}
+                duration={1800} fadeOutTime={300}
+              />
             </div>
           </div>
         )}

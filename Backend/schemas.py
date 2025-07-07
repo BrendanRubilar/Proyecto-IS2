@@ -55,6 +55,21 @@ class PreferenciasCreate(BaseModel):
         populate_by_name = True
         from_attributes = True
 
+class Favoritos(BaseModel):
+    user_id: int
+    actividad_id: int
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
+
+class FavoritosCreate(BaseModel):
+    actividad_id: int
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True
+
 class UserCreate(UserBase):
     password: str = Field(min_length=6)  # Mínimo de 6 caracteres para la contraseña
     is_business: bool = False

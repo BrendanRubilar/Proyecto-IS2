@@ -188,6 +188,62 @@ def crear_preferencias(
     return nuevas_prefs
 
 
+@app.get("/favoritos/", response_model=List[schemas.Favoritos], tags=["Favoritos"])
+def read_favoritos(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="No se pudieron validar las credenciales",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = crud.get_user_by_email(db, email=email)
+    if user is None:
+        raise credentials_exception
+
+    return crud.get_favoritos(db=db, usr=user)
+
+
+@app.post("/favoritos/", tags=["Favoritos"])
+def crear_favoritos(
+    fav_list: List[schemas.FavoritosCreate],
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+):
+    # Validar token y usuario (tu código de autenticación se mantiene igual)
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="No se pudieron validar las credenciales",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = crud.get_user_by_email(db, email=email)
+    if user is None:
+        raise credentials_exception
+    
+    # La lógica de guardado sigue siendo la misma
+    crud.create_favoritos(db=db, fav_list=fav_list, usr=user)
+
+    # Devolvemos una respuesta JSON simple y explícita en lugar de la lista
+    return {"message": "Favoritos guardados con éxito"}
 
 
 
